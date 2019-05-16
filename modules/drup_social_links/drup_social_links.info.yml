@@ -3,3 +3,4 @@ type: module
 description: 'Permet de gérer les liens vers les réseaux sociaux (liens & partage)'
 core: 8.x
 package: 'Drup'
+php: 7.0

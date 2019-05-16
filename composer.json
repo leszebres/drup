@@ -1,8 +1,8 @@
 {
     "require": {
-        "php": ">=7.1"
+        "php": ">=7.0"
     },
-    "name": "drupal/drup",
+    "name": "leszebres/drup",
     "description": "",
     "keywords": ["Drupal"],
     "type": "drupal-module",

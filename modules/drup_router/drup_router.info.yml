@@ -3,3 +3,4 @@ type: module
 description: 'Assignate custom routes to content nodes'
 core: 8.x
 package: 'Drup'
+php: 7.0
