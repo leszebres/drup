@@ -1,0 +1,11 @@
+name: 'Drup Report'
+type: module
+description: 'Report watchdog logs by email for each user'
+core: 8.x
+package: 'Drup'
+
+dependencies:
+  - drupal:dblog
+  - drupal:syslog
+
+php: 7.2

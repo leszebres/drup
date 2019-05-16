@@ -1,0 +1,5 @@
+drup_social_links.form_links:
+  title: 'Réseaux sociaux'
+  description: 'Social links managment'
+  parent: drup.admin_list
+  route_name: 'drup_social_links.form_links'

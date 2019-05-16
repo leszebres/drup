@@ -1,0 +1,10 @@
+#@see drup_site.routing.yml
+#drup_settings.admin_form:
+#  path: '/admin/config/drup/drup-settings'
+#  defaults:
+#    _form: '\Drupal\drup_settings\Form\DrupSettingsForm'
+#    _title: 'Configuration du site'
+#  requirements:
+#    _permission: 'access administration pages'
+#  options:
+#    _admin_route: TRUE

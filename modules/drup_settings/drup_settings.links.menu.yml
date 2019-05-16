@@ -1,0 +1,5 @@
+drup_settings.admin_form:
+  title: 'Configuration du site'
+  description: 'Add basic settings to Site Information admin page'
+  parent: drup.admin_list
+  route_name: 'drup_settings.admin_form'

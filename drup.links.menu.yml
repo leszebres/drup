@@ -1,0 +1,6 @@
+drup.admin_list:
+  title: 'Drup'
+  description: ''
+  route_name: drup_settings.admin_form
+  parent: system.admin_config
+  weight: -40

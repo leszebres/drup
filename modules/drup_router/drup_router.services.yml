@@ -1,0 +1,4 @@
+services:
+  drup_router:
+    class: Drupal\drup_router\DrupRouter
+    arguments: []

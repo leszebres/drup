@@ -1,0 +1,9 @@
+services:
+  drup_settings:
+    class: \Drupal\drup_settings\DrupSettings
+    arguments: []
+  drup_settings.overrider:
+    class: \Drupal\drup_settings\Configuration\DrupSettingsOverride
+    arguments: ['@config.factory']
+    tags:
+      - {name: config.factory.override, priority: 5}

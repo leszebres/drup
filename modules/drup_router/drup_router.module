@@ -1,0 +1,77 @@
+<?php
+
+/**
+ * @file
+ * Contains drup_router.module.
+ */
+
+use Drupal\drup\Entity\Node;
+
+/**
+ * Implements hook_token_info().
+ */
+function drup_router_token_info() {
+    $tokenType = 'drup_router';
+
+    $types[$tokenType] = [
+        'name' => t('Custom Routes'),
+        'description' => t('Get custom routes slugs from DrupRouter module'),
+    ];
+
+    $tokensAvailable = [];
+
+    $drupRouter = \Drupal::service('drup_router');
+    $drupRoutes = $drupRouter->getRoutes();
+
+    if (!empty($drupRoutes)) {
+        foreach ($drupRoutes as $index => $drupRoute) {
+            $routeName = $drupRoute['routeName'];
+            $tokensAvailable[$routeName] = [
+                'name' => $routeName,
+                'description' => 'Slug for ' . $routeName
+            ];
+        }
+    }
+
+    return [
+        'types' => $types,
+        'tokens' => [
+            $tokenType => $tokensAvailable,
+        ]
+    ];
+}
+
+/**
+ * Implements hook_tokens().
+ * @param $type
+ * @param $tokens
+ * @param array $data
+ * @param array $options
+ * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+ *
+ * @return array
+ */
+function drup_router_tokens($type, $tokens, array $data, array $options, \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata) {
+    $tokenType = 'drup_router';
+    $replacements = [];
+
+    if ($type === $tokenType) {
+        $drupRouter = \Drupal::service('drup_router');
+
+        foreach ($tokens as $name => $original) {
+            $routeID = $drupRouter->getID($name);
+            
+            if ($alias = \Drupal::service('path.alias_manager')->getAliasByPath('/node/'.$routeID)) {
+                $replacements[$original] = $alias;
+            } else {
+                $node = Node::load($routeID);
+
+                if ($node instanceof Node) {
+                    $replacements[$original] = $node->getTitle();
+                }
+            }
+        }
+    }
+    
+    return $replacements;
+}

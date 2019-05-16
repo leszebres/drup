@@ -1,0 +1,6 @@
+form-links:
+  version: '1.0.0'
+  js:
+    assets/form-links.js: {}
+  dependencies:
+  - core/jquery

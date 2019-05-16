@@ -1,0 +1,10 @@
+drup_report.drup_report_form:
+  path: 'admin/config/drup/drup-report'
+  defaults:
+    _form: '\Drupal\drup_report\Form\DrupReportForm'
+    _title: 'Drup Report Configuration'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE
+

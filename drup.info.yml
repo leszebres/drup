@@ -1,0 +1,6 @@
+name: 'Drup'
+type: module
+description: 'Utils to extend Drupal 8 methods'
+core: 8.x
+package: 'Drup'
+version: '8.x-3.0'

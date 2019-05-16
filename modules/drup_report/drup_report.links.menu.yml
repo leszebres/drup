@@ -1,0 +1,6 @@
+drup_report.drup_report_form:
+  title: 'Drup Report'
+  description: 'Drup report managment'
+  parent: drup.admin_list
+  route_name: 'drup_report.drup_report_form'
+

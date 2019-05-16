@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * Contains drup_report.module.
+ */
+
+use Drupal\drup_report\DrupReport;
+
+
+/**
+ * Implements hook_cron().
+ */
+function drup_report_cron() {
+    DrupReport::sendReports();
+    DrupReport::saveLogTypes();
+}
+
+/**
+ * Implements hook_theme().
+ */
+function drup_report_theme() {
+    return [
+        'drup_report__email' => [
+            'variables' => [
+                'data' => []
+            ]
+        ]
+    ];
+}
+
+/**
+ * Implements hook_mail().
+ */
+function drup_report_mail($key, &$message, $params) {
+    if ($key === 'drup_report_email') {
+        $message['headers']['Content-Type'] = SWIFTMAILER_FORMAT_HTML;
+        $message['from'] = \Drupal::config('system.site')->get('mail');
+        $message['subject'] = t('Logs report');
+        $message['body'][] = $params['message'];
+    }
+}

@@ -1,0 +1,9 @@
+drup_router.admin_form:
+  path: '/admin/config/drup/drup-router'
+  defaults:
+    _form: '\Drupal\drup_router\Form\DrupRouterForm'
+    _title: 'Gestion des Routes'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE

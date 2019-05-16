@@ -1,0 +1,31 @@
+{
+    "require": {
+        "php": ">=7.1"
+    },
+    "name": "drupal/drup",
+    "description": "",
+    "keywords": ["Drupal"],
+    "type": "drupal-module",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "homepage": "https://github.com/leszebres/drup",
+    "authors": [
+        {
+            "name": "Les Zèbres",
+            "homepage": "https://github.com/leszebres"
+        },
+        {
+            "name": "Kévin Baubet",
+            "homepage": "https://github.com/kevinbaubet",
+            "role": "Creator, Maintainer"
+        },
+        {
+            "name": "Mathieu Maingret",
+            "homepage": "https://github.com/mathieumaingret",
+            "role": "Creator, Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/leszebres/drup/issues"
+    }
+}
