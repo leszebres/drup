@@ -92,14 +92,14 @@ class DrupReportForm extends ConfigFormBase {
         $form['config']['start_date'] = [
             '#type' => 'datetime',
             '#title' => $this->t('Starting date'),
-            '#default_value' => isset($values['start_date']) ? (new DrupalDateTime())->setTimestamp($values['start_date']) : new DrupalDateTime()
+            '#default_value' => isset($values['start_date']) ? DrupalDateTime::createFromTimestamp($values['start_date']) : new DrupalDateTime()
         ];
 
         if (isset($values['date_last_send'])) {
             $form['config']['date_last_send_info'] = [
                 '#type' => 'textfield',
                 '#title' => $this->t('Last report sent on'),
-                '#default_value' =>(new DrupalDateTime())->setTimestamp($values['date_last_send'])->format('d/m/Y H:i:s'),
+                '#default_value' => DrupalDateTime::createFromTimestamp($values['date_last_send'])->format('d/m/Y H:i:s'),
                 '#attributes' => [
                     'readonly' => 'readonly',
                     'disabled' => 'disabled',

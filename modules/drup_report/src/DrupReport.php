@@ -73,9 +73,7 @@ class DrupReport {
                     continue;
                 }
                 $currentDate = new DrupalDateTime;
-                $sendDate = (new DrupalDateTime)
-                    ->setTimestamp($userConfigValues['date_last_send'] ?? $userConfigValues['start_date'])
-                    ->modify('+1 ' . $userConfigValues['periodicity']);
+                $sendDate = DrupalDateTime::createFromTimestamp($userConfigValues['date_last_send'] ?? $userConfigValues['start_date'])->modify('+1 ' . $userConfigValues['periodicity']);
 
                 if ($sendDate->format('U') <= $currentDate->format('U')) {
                     if ($isReportSent = self::sendReport($userId, $userConfigValues, $sendDate)) {
