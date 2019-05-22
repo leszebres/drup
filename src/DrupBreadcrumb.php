@@ -100,7 +100,7 @@ class DrupBreadcrumb implements BreadcrumbBuilderInterface {
                         $drupField = new DrupField($this->drupPageEntity->getEntity());
 
                         if ($entities = $drupField->getReferencedEntities($id)) {
-                            ksort($entities);
+                            $entities = array_reverse($entities);
 
                             if (($entity = current($entities)) && $entity !== null) {
                                 $links[] = Link::fromTextAndUrl($entity->getName(), $entity->toUrl());
@@ -113,7 +113,7 @@ class DrupBreadcrumb implements BreadcrumbBuilderInterface {
                         $drupField = new DrupField($this->drupPageEntity->getEntity());
 
                         if ($entities = $drupField->getReferencedEntities($id)) {
-                            ksort($entities);
+                            $entities = array_reverse($entities);
 
                             if (($entity = current($entities)) && $entity !== null && $termParents = \Drupal::service('entity_type.manager')->getStorage('taxonomy_term')->loadAllParents($entity->id())) {
                                 ksort($termParents);
