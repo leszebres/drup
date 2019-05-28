@@ -4,3 +4,42 @@
  * @file
  * Contains drup.module.
  */
+
+use Drupal\drup\Block\DrupBlock;
+
+/**
+ * Implements hook_theme().
+ */
+function drup_theme() {
+    // Medias
+    $themes = [
+        'drup_media__video_external' => [
+            'variables' => [
+                'title' => null,
+                'legend' => null,
+                'media' => null,
+                'thumbnail_uri' => null
+            ]
+        ],
+        'drup_media__document' => [
+            'variables' => [
+                'title' => null,
+                'url' => null,
+                'attributes' => []
+            ]
+        ],
+        'drup_media__image' => [
+            'variables' => [
+                'title' => null,
+                'legend' => null,
+                'media' => null
+            ]
+        ],
+    ];
+
+    DrupBlock::format($themes, [
+        'type' => 'media'
+    ]);
+
+    return $themes;
+}

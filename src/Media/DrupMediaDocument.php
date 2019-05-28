@@ -14,7 +14,7 @@ class DrupMediaDocument extends DrupMedia {
     /**
      * DrupMediaFile constructor.
      *
-     * @param int|array|Media|Media[] $medias
+     * @param int|int[]|Media|Media[] $medias
      * @param null $fileField
      */
     public function __construct($medias, $fileField = null) {
@@ -23,13 +23,17 @@ class DrupMediaDocument extends DrupMedia {
     }
 
     /**
+     * @param array $attributes
+     *
      * @return array
      */
-    public function getMediasData() {
+    public function renderMedias($attributes = []) {
         $medias = [];
 
-        foreach ($this->mediasData as $index => $media) {
-            $medias[] = $this->getMediaData($index);
+        if (!empty($this->mediasData)) {
+            foreach ($this->mediasData as $index => $media) {
+                $medias[] = $this->renderMedia($index, $attributes);
+            }
         }
 
         return $medias;
@@ -48,6 +52,33 @@ class DrupMediaDocument extends DrupMedia {
         return $urls;
     }
 
+    /**
+     * @return array
+     */
+    public function getMediasData() {
+        $medias = [];
+
+        foreach ($this->mediasData as $index => $media) {
+            $medias[] = $this->getMediaData($index);
+        }
+
+        return $medias;
+    }
+
+    /**
+     * @param int $index
+     * @param array $attributes
+     *
+     * @return bool
+     */
+    protected function renderMedia($index = 0, $attributes = []) {
+        if (isset($this->mediasData[$index])) {
+            // todo
+        }
+
+        return false;
+    }
+
 
     /**
      * @param int $index
@@ -60,10 +91,10 @@ class DrupMediaDocument extends DrupMedia {
         if ($url = $this->getMediaUrl($index)) {
             $data = [
                 'url' => $url,
-                'size' => format_size($this->mediasData[$index]->fileEntity->getSize())->__toString(),
-                'mime' => explode('/', $this->mediasData[$index]->fileEntity->getMimeType())[1],
-                'name' => $this->mediasData[$index]->fileEntity->getFilename(),
-                'title' => $this->mediasData[$index]->mediaEntity->getName(),
+                'size' => format_size($this->mediasData[$index]->field_value->getSize())->__toString(),
+                'mime' => explode('/', $this->mediasData[$index]->field_value->getMimeType())[1],
+                'name' => $this->mediasData[$index]->field_value->getFilename(),
+                'title' => $this->mediasData[$index]->entity->getName(),
             ];
         }
 
@@ -76,7 +107,7 @@ class DrupMediaDocument extends DrupMedia {
      * @return bool|string
      */
     protected function getMediaUrl($index = 0) {
-        if (!empty($this->mediasData[$index]) && ($fileUri = $this->mediasData[$index]->fileEntity->getFileUri())) {
+        if (!empty($this->mediasData[$index]) && ($fileUri = $this->mediasData[$index]->field_value->getFileUri())) {
             return file_create_url($fileUri);
         }
 

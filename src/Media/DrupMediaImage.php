@@ -15,7 +15,7 @@ class DrupMediaImage extends DrupMedia {
     /**
      * DrupMediaImage constructor.
      *
-     * @param int|array|Media|Media[] $medias
+     * @param int|int[]|Media|Media[] $medias
      * @param null $fileField
      */
     public function __construct($medias, $fileField = null) {
@@ -84,10 +84,10 @@ class DrupMediaImage extends DrupMedia {
      */
     protected function renderMedia($style, $index = 0, $attributes = []) {
         if (isset($this->mediasData[$index])) {
-            $drupFileImage = new DrupFile($this->mediasData[$index]->fileEntity);
+            $drupFileImage = new DrupFile($this->mediasData[$index]->field_value);
 
             $attributes = array_merge([
-                'alt' => $this->mediasData[$index]->fileReferenced->get('alt')->getString(),
+                'alt' => $this->mediasData[$index]->field->get('alt')->getString(),
             ], $attributes);
 
             return $drupFileImage->renderMedia($style, $attributes);
@@ -104,7 +104,7 @@ class DrupMediaImage extends DrupMedia {
      */
     protected function getMediaUrl($style, $index = 0) {
         if (isset($this->mediasData[$index])) {
-            $drupFileImage = new DrupFile($this->mediasData[$index]->fileEntity);
+            $drupFileImage = new DrupFile($this->mediasData[$index]->field_value);
             return $drupFileImage->getMediaUrl($style);
         }
 
@@ -121,16 +121,17 @@ class DrupMediaImage extends DrupMedia {
         $data = [];
 
         if (isset($this->mediasData[$index])) {
-            $drupFileImage = new DrupFile($this->mediasData[$index]->fileEntity);
+            $drupFileImage = new DrupFile($this->mediasData[$index]->field_value);
 
             if ($drupFileImage->isValid()) {
                 $data = [
                     'url' => $drupFileImage->getMediaUrl($style),
-                    'alt' => $this->mediasData[$index]->fileReferenced->get('alt')
+                    'alt' => $this->mediasData[$index]->field->get('alt')
                         ->getString(),
-                    'title' => $this->mediasData[$index]->fileReferenced->get('title')
+                    'title' => $this->mediasData[$index]->field->get('title')
                         ->getString(),
-                    'name' => $this->mediasData[$index]->mediaEntity->getName(),
+                    'name' => $this->mediasData[$index]->entity->getName(),
+                    'legend' => $this->getLegend($index)
                 ];
             }
         }

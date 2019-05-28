@@ -35,7 +35,7 @@ class DrupFile {
      * @param \Drupal\file\Entity\File $fileEntity
      */
     public function __construct(File $fileEntity) {
-        $this->fileEntity = $fileEntity;
+        $this->field_value = $fileEntity;
         $this->fileUri = $fileEntity->getFileUri();
         $this->image = \Drupal::service('image.factory')->get($this->fileUri);
     }
@@ -204,7 +204,7 @@ class DrupFile {
         }
 
         $renderer = \Drupal::service('renderer');
-        $renderer->addCacheableDependency($rendererOptions, $this->fileEntity);
+        $renderer->addCacheableDependency($rendererOptions, $this->field_value);
 
         return $renderer->render($rendererOptions);
     }

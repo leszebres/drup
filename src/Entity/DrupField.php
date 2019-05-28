@@ -4,6 +4,7 @@ namespace Drupal\drup\Entity;
 
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityBase;
+use Drupal\drup\Helper\DrupString;
 use Drupal\field\Entity\FieldConfig;
 
 /**
@@ -106,11 +107,11 @@ class DrupField {
      * @param string $field
      * @param string $type
      *
-     * @return null|\Drupal\drup\Media\DrupMediaImage|\Drupal\drup\Media\DrupMediaDocument
+     * @return null|\Drupal\drup\Media\DrupMediaImage|\Drupal\drup\Media\DrupMediaDocument|\Drupal\drup\Media\DrupMediaVideoExternal
      */
     public function getDrupMedia($field, $type = 'image') {
         if ($entities = $this->getReferencedEntities($field)) {
-            $className = '\\Drupal\\drup\\Media\\DrupMedia' . ucfirst(strtolower($type));
+            $className = '\\Drupal\\drup\\Media\\DrupMedia' . DrupString::toCamelCase($type);
 
             if (class_exists($className)) {
                 return new $className($entities);

@@ -2,6 +2,8 @@
 
 namespace Drupal\drup\Media;
 
+use Drupal\Core\Field\FieldItemBase;
+use Drupal\Core\Render\Markup;
 use Drupal\media\Entity\Media;
 use Drupal\file\Entity\File;
 
@@ -15,7 +17,7 @@ class DrupMedia {
     /**
      * Media entities list
      *
-     * @var array
+     * @var \Drupal\media\Entity\Media[]
      */
     protected $mediasList;
 
@@ -50,7 +52,7 @@ class DrupMedia {
     /**
      * DrupMedia constructor.
      *
-     * @param int|array|Media|Media[] $medias
+     * @param int|int[]|Media|Media[] $medias
      * @param null $fileField
      */
     public function __construct($medias, $fileField = null) {
@@ -60,6 +62,23 @@ class DrupMedia {
         $this->mediasList = $this->formatMedias($medias);
 
         $this->mediasData = $this->getData();
+    }
+
+    /**
+     * Get the media legend (from media entity field)
+     *
+     * @param int $index
+     *
+     * @return \Drupal\Component\Render\MarkupInterface|string|null
+     */
+    public function getLegend($index = 0) {
+        if (isset($this->mediasData[$index]) && $this->mediasData[$index]->entity->hasField('field_description')) {
+            if ($legend = $this->mediasData[$index]->entity->get('field_description')->value) {
+                return Markup::create(nl2br($legend));
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -96,17 +115,22 @@ class DrupMedia {
             foreach ($this->mediasList as $mediaEntity) {
                 if ($mediaEntity->hasField($this->filesField)) {
 
-                    /** @var \Drupal\image\Plugin\Field\FieldType\ImageItem $fileReferenced */
+                    /** @var FieldItemBase $fileReferenced */
                     $fileReferenced = $mediaEntity->get($this->filesField)->first();
 
-                    if (!$fileReferenced->isEmpty() && ($fileData = $fileReferenced->getValue())) {
-                        if (isset($fileData['target_id']) && ($fileEntity = File::load($fileData['target_id'])) && ($fileEntity instanceof File)) {
-                            $data[] = (object) [
-                                'mediaEntity' => $mediaEntity,
-                                'fileEntity' => $fileEntity,
-                                'fileReferenced' => $fileReferenced,
-                            ];
+                    if (!$fileReferenced->isEmpty() && !empty($fileReferenced->getValue())) {
+                        $item = [
+                            'entity' => $mediaEntity,
+                            'field' => $fileReferenced
+                        ];
+
+                        if ($fileReferenced->target_id !== null && ($fileEntity = File::load($fileReferenced->target_id)) && $fileEntity instanceof File) {
+                            $item['field_value'] = $fileEntity;
+                        } else {
+                            $item['field_value'] = $fileReferenced->value;
                         }
+
+                        $data[] = (object) $item;
                     }
                 }
             }
