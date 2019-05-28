@@ -61,4 +61,23 @@ abstract class DrupString {
 
         return $phone;
     }
+
+    /**
+     * Convert string to camelCase format
+     *
+     * @param $string
+     * @param bool $capitalizeFirstCharacter
+     *
+     * @return string
+     */
+    public static function toCamelCase($string, $capitalizeFirstCharacter = true, $wordSeparator = '_') {
+        $string = ucfirst(strtolower($string));
+        $string = str_replace($wordSeparator, '', ucwords($string, $wordSeparator));
+
+        if (!$capitalizeFirstCharacter) {
+            $string = lcfirst($string);
+        }
+
+        return $string;
+    }
 }
