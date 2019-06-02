@@ -3,9 +3,8 @@
 namespace Drupal\drup;
 
 use Drupal\Core\Menu\MenuLinkInterface;
-use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\drup\Entity\ContentEntityBase;
-use Drupal\drup\Entity\Node;
+use Drupal\drup\Helper\DrupUrl;
 use Drupal\menu_link_content\Plugin\Menu\MenuLinkContent;
 
 /**
@@ -16,22 +15,24 @@ use Drupal\menu_link_content\Plugin\Menu\MenuLinkContent;
 class DrupMenu {
 
     /**
-     * @param $items
-     * @param $languageId
+     * Supprime les entrées non traduites d'un menu
      *
-     * @return bool
+     * @param array $items
+     * @param string $languageId
+     *
+     * @return array
      */
-    public static function checkMenuItemTranslation(&$items, $languageId) {
+    public static function translate(&$items, $languageId) {
         foreach ($items as $index => &$item) {
-            if (($item['original_link'] instanceof MenuLinkInterface) && ($nid = self::getNidFromMenuItem($item)) && ($node = Node::load($nid)) && ($node instanceof Node)) {
-                if (!ContentEntityBase::isAllowed($node, $languageId)) {
+            if (($item['original_link'] instanceof \Drupal\menu_link_content\Plugin\Menu\MenuLinkContent) && ($entity = DrupUrl::loadEntity($item['url']))) {
+                if (!ContentEntityBase::isAllowed($entity, $languageId)) {
                     unset($items[$index]);
-                } else if (($menuLinkEntity = self::loadLinkEntityByLink($item['original_link'])) && !self::checkEntityTranslation($menuLinkEntity, $languageId)) {
+                } else if (($entity = self::loadMenuItemEntityFromMenuLink($item['original_link'])) && !self::isMenuItemTranslated($entity, $languageId)) {
                     unset($items[$index]);
                 }
             }
             if (count($item['below']) > 0) {
-                self::checkMenuItemTranslation($item['below'], $languageId);
+                self::translate($item['below'], $languageId);
             }
         }
 
@@ -39,13 +40,15 @@ class DrupMenu {
     }
 
     /**
-     * @param $entity
-     * @param $language
+     * Vérifie la traduction d'un élément de menu
+     *
+     * @param \Drupal\menu_link_content\Entity\MenuLinkContent $entity
+     * @param string $language
      *
      * @return bool
      */
-    public static function checkEntityTranslation($entity, $language) {
-        if (!empty($entity)) {
+    public static function isMenuItemTranslated($entity, $language) {
+        if ($entity !== null) {
             return array_key_exists($language, $entity->getTranslationLanguages()) ? true : false;
         }
 
@@ -53,66 +56,162 @@ class DrupMenu {
     }
 
     /**
-     * @param \Drupal\Core\Menu\MenuLinkInterface $menuLinkContentPlugin
+     * @param \Drupal\menu_link_content\Plugin\Menu\MenuLinkContent $menuLinkContent
      *
-     * @return |null
+     * @return \Drupal\menu_link_content\Entity\MenuLinkContent|null
      */
-    public static function loadLinkEntityByLink(MenuLinkInterface $menuLinkContentPlugin) {
+    public static function loadMenuItemEntityFromMenuLink(MenuLinkInterface $menuLinkContent) {
         $entity = null;
 
-        if ($menuLinkContentPlugin instanceof MenuLinkContent) {
-            $menu_link = explode(':', $menuLinkContentPlugin->getPluginId(), 2);
-            $uuid = $menu_link[1];
-            $entity = \Drupal::service('entity.repository')->loadEntityByUuid('menu_link_content', $uuid);
+        if ($menuLinkContent instanceof MenuLinkContent) {
+            //$entity = self::loadEntityFromPluginId($menuLinkContent->getPluginId());
+            $entity = \Drupal::service('entity.repository')->loadEntityByUuid('menu_link_content', $menuLinkContent->getDerivativeId());
         }
 
         return $entity;
     }
 
     /**
-     * @param $menuItem
+     * Load l'entité d'item de menu via son plugin ID (menu_link_content:UUID)
      *
-     * @return int|null
+     * @param string $pluginId
+     *
+     * @return \Drupal\menu_link_content\Entity\MenuLinkContent|null
      */
-    public static function getNidFromMenuItem($menuItem) {
-        if (isset($menuItem['url']) && !$menuItem['url']->isExternal()) {
-            $urlParameters = $menuItem['url']->getRouteParameters();
+    public static function loadMenuItemEntityFromPluginId($pluginId) {
+        $menu_link = explode(':', $pluginId, 2);
 
-            if (isset($urlParameters['node'])) {
-                return $urlParameters['node'];
-            }
+        if (isset($menu_link[1])) {
+            $uuid = $menu_link[1];
+            return \Drupal::service('entity.repository')->loadEntityByUuid('menu_link_content', $uuid);
         }
 
         return null;
     }
 
     /**
-     * Retourne les liens enfants d'un noeud
+     * @param $parentEntityId
+     * @param string $menuName
      *
-     * @param $nid
+     * @return bool
+     * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+     * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+     */
+    public static function isChildOf($parentEntityId, $menuName = 'main') {
+        $menuTreeService = \Drupal::menuTree();
+
+        $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
+        $activeTrail = $parameters->activeTrail;
+
+        // Remove current item
+        $activeTrail = array_reverse($activeTrail);
+        array_pop($activeTrail);
+
+        foreach ($activeTrail as $pluginId) {
+            if ($menuLink = self::loadMenuItemEntityFromPluginId($pluginId)) {
+                if ($entity = DrupUrl::loadEntity($menuLink->getUrlObject())) {
+                    if ((string) $entity->id() === (string) $parentEntityId) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Retourne les liens enfants
+     *
+     * @param null $nid Nid du contenu parent. Si null, on utilise l'item de menu courant
      * @param string $menuName
      *
      * @return array
      */
-    public static function getNodeChildren($nid, $menuName = 'main') {
+    public static function getChildren($nid = null, $menuName = 'main') {
         $navItems = [];
-        $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
-        $links = $menuLinkManager->loadLinksByRoute('entity.node.canonical', ['node' => $nid], $menuName);
-        $rootMenuItem = array_pop($links);
+        $menuTreeService = \Drupal::menuTree();
 
-        $menuParameters = new MenuTreeParameters();
-        $menuParameters
-            ->setMaxDepth(1)
-            ->setRoot($rootMenuItem->getPluginId())
-            ->excludeRoot()
-            ->onlyEnabledLinks();
-        $menuTreeService = \Drupal::service('menu.link_tree');
+        // This one will give us the active trail in *reverse order*.
+        // Our current active link always will be the first array element.
+        $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
 
-        $menuTree = $menuTreeService->load($menuName, $menuParameters);
+        if ($nid === null) {
+            $activeTrail = array_keys($parameters->activeTrail);
+            // But actually we need its parent.
+            // Except for <front>. Which has no parent.
+            $parentLinkId = $activeTrail[0];
+        } else {
+            $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
+            $links = $menuLinkManager->loadLinksByRoute('entity.node.canonical', ['node' => $nid], $menuName);
+            /** @var MenuLinkContent $rootMenuItem */
+            $rootMenuItem = array_pop($links);
+            $parentLinkId = $rootMenuItem->getPluginId();
+        }
+
+        // Having the parent now we set it as starting point to build our custom
+        // tree.
+        $parameters->setRoot($parentLinkId);
+        $parameters->setMaxDepth(1);
+        $parameters->onlyEnabledLinks();
+        $parameters->excludeRoot();
+        $menuTree = $menuTreeService->load($menuName, $parameters);
+
+        // Optional: Native sort and access checks.
         $manipulators = [
+            //['callable' => 'menu.default_tree_manipulators:checkNodeAccess'],
             ['callable' => 'menu.default_tree_manipulators:checkAccess'],
-            ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort']
+            ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
         ];
+
+        $tree = $menuTreeService->transform($menuTree, $manipulators);
+        $menuItems = $menuTreeService->build($tree);
+        $menuItems['#cache']['max-age'] = 0;
+
+        if (!empty($menuItems['#items'])) {
+            foreach ($menuItems['#items'] as $index => $item) {
+                $navItems[$index] = $item;
+            }
+        }
+
+        return $navItems;
+    }
+
+    /**
+     * Retourne les liens frères
+     *
+     * @param string $menuName
+     *
+     * @return array
+     */
+    public static function getSiblings($menuName = 'main') {
+        $navItems = [];
+        $menuTreeService = \Drupal::menuTree();
+
+        // This one will give us the active trail in *reverse order*.
+        // Our current active link always will be the first array element.
+        $parameters   = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
+        $activeTrail = array_keys($parameters->activeTrail);
+
+        // But actually we need its parent.
+        // Except for <front>. Which has no parent.
+        $parentLinkId = $activeTrail[1] ?? $activeTrail[0];
+
+        // Having the parent now we set it as starting point to build our custom
+        // tree.
+        $parameters->setRoot($parentLinkId);
+        $parameters->setMaxDepth(1);
+        $parameters->excludeRoot();
+        $menuTree = $menuTreeService->load($menuName, $parameters);
+
+        // Optional: Native sort and access checks.
+        $manipulators = [
+            ['callable' => 'menu.default_tree_manipulators:checkNodeAccess'],
+            ['callable' => 'menu.default_tree_manipulators:checkAccess'],
+            ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
+        ];
+
         $tree = $menuTreeService->transform($menuTree, $manipulators);
         $menuItems = $menuTreeService->build($tree);
         $menuItems['#cache']['max-age'] = 0;

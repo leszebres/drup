@@ -2,6 +2,7 @@
 
 namespace Drupal\drup\Helper;
 
+use Drupal\Core\Url;
 use Drupal\drup_settings\DrupSettings;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -47,5 +48,29 @@ abstract class DrupUrl {
         }
 
         return $baseUrl . $relativePath;
+    }
+
+    /**
+     * Load l'entité de contenu Drupal depuis une entité Url
+     *
+     * @param \Drupal\Core\Url $url
+     *
+     * @return \Drupal\Core\Entity\EntityInterface|null
+     * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+     * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+     */
+    public static function loadEntity(Url $url) {
+        if (!$url->isExternal()) {
+            $urlParameters = $url->getRouteParameters();
+
+            if (!empty($urlParameters)) {
+                $entityType = current(array_keys($urlParameters));
+                $entityId = current(array_values($urlParameters));
+
+                return \Drupal::entityTypeManager()->getStorage($entityType)->load($entityId);
+            }
+        }
+
+        return null;
     }
 }

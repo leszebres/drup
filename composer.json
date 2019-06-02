@@ -3,7 +3,7 @@
         "php": ">=7.0"
     },
     "name": "leszebres/drup",
-    "description": "",
+    "description": "Set of modules simplifying the use of Drupal 8",
     "keywords": ["Drupal"],
     "type": "drupal-module",
     "license": "MIT",
