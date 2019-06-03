@@ -126,10 +126,11 @@ class DrupMenu {
      *
      * @param null $nid Nid du contenu parent. Si null, on utilise l'item de menu courant
      * @param string $menuName
+     * @param boolean $loadEntities Load l'entité Drupal associée à l'élément de menu
      *
      * @return array
      */
-    public static function getChildren($nid = null, $menuName = 'main') {
+    public static function getChildren($nid = null, $menuName = 'main', $loadEntities = true) {
         $navItems = [];
         $menuTreeService = \Drupal::menuTree();
 
@@ -172,6 +173,11 @@ class DrupMenu {
         if (!empty($menuItems['#items'])) {
             foreach ($menuItems['#items'] as $index => $item) {
                 $navItems[$index] = $item;
+
+                if ($loadEntities && ($entity = DrupUrl::loadEntity($item['url']))) {
+                    /** @var ContentEntityBase $entity */
+                    $navItems[$index]['entity'] = $entity;
+                }
             }
         }
 
