@@ -126,11 +126,11 @@ class DrupField {
 
     /**
      * @param string $field
-     * @param string $type
+     * @param string $type Type de media (image|document|video_external)
      *
      * @return null|\Drupal\drup\Media\DrupMediaImage|\Drupal\drup\Media\DrupMediaDocument|\Drupal\drup\Media\DrupMediaVideoExternal
      */
-    public function getDrupMedia($field, $type = 'image') {
+    public function getDrupMedia($field, $type) {
         if ($entities = $this->getReferencedEntities($field)) {
             $className = '\\Drupal\\drup\\Media\\DrupMedia' . DrupString::toCamelCase($type);
 
