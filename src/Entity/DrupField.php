@@ -91,6 +91,27 @@ class DrupField {
 
     /**
      * @param string $field
+     * @param string $key
+     *
+     * @return mixed|null
+     * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+     */
+    public function getProcessedText($field, $key = 'value') {
+        if (($fieldEntity = $this->get($field)) && ($fistField = $fieldEntity->first()) && ($data = $fistField->getValue())) {
+            if (!empty($data) && isset($data[$key])) {
+                return [
+                    '#type' => 'processed_text',
+                    '#text' => $data[$key],
+                    '#format' => $data['format']
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $field
      *
      * @return \Drupal\Core\Entity\Entity[]
      */
@@ -204,6 +225,6 @@ class DrupField {
      * @return string
      */
     public static function format($field) {
-        return in_array($field, ['body', 'title']) ? $field : 'field_' . $field;
+        return in_array($field, ['title']) ? $field : 'field_' . $field;
     }
 }
