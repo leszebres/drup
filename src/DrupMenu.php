@@ -3,6 +3,7 @@
 namespace Drupal\drup;
 
 use Drupal\Core\Menu\MenuLinkInterface;
+use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\drup\Entity\ContentEntityBase;
 use Drupal\drup\Helper\DrupUrl;
 use Drupal\menu_link_content\Plugin\Menu\MenuLinkContent;
@@ -134,16 +135,16 @@ class DrupMenu {
         $navItems = [];
         $menuTreeService = \Drupal::menuTree();
 
-        // This one will give us the active trail in *reverse order*.
-        // Our current active link always will be the first array element.
-        $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
-
         if ($nid === null) {
+            // This one will give us the active trail in *reverse order*.
+            // Our current active link always will be the first array element.
+            $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
             $activeTrail = array_keys($parameters->activeTrail);
             // But actually we need its parent.
             // Except for <front>. Which has no parent.
             $parentLinkId = $activeTrail[0];
         } else {
+            $parameters = new MenuTreeParameters();
             $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
             $links = $menuLinkManager->loadLinksByRoute('entity.node.canonical', ['node' => $nid], $menuName);
             /** @var MenuLinkContent $rootMenuItem */
