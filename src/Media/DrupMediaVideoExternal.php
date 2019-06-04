@@ -2,6 +2,7 @@
 
 namespace Drupal\drup\Media;
 
+use Drupal\Core\Render\Markup;
 use Drupal\media\Entity\Media;
 use Drupal\media\IFrameMarkup;
 
@@ -121,13 +122,15 @@ class DrupMediaVideoExternal extends DrupMedia {
         $data = [];
 
         if (isset($this->mediasData[$index]) && ($oEmbedResource = self::fetchResource($this->mediasData[$index]->field_value))) {
+            $iframe = self::generateIframe($this->mediasData[$index]->field_value);
+
             $data = [
                 'url' => $this->mediasData[$index]->field_value,
                 'name' => $this->mediasData[$index]->entity->getName(),
                 'legend' => $this->getLegend($index),
                 'oembed' => $oEmbedResource,
-                'iframe' => self::generateIframe($this->mediasData[$index]->field_value),
-                'iframe_url' => self::fetchResource($this->mediasData[$index]->field_value),
+                'iframe' => $iframe,
+                'iframe_url' => self::extractIframeUrl($iframe),
                 'thumbnail' => self::getThumbnailUrl($oEmbedResource)
             ];
         }
@@ -204,5 +207,22 @@ class DrupMediaVideoExternal extends DrupMedia {
         }
 
         return null;
+    }
+
+    /**
+     * Extrait la source d'une iframe
+     *
+     * @param $string
+     *
+     * @return mixed|null
+     */
+    public static function extractIframeUrl($string) {
+        if ($string instanceof Markup) {
+            $string = $string->__toString();
+        }
+
+        preg_match('/src="([^"]+)"/', $string, $match);
+
+        return $match[1] ?? null;
     }
 }
