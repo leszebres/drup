@@ -66,7 +66,7 @@ class DrupSettingsForm extends ConfigFormBase {
             '#type' => 'details',
             '#title' => $this->t('Configuration du site'),
             '#collapsible' => true,
-            '#collapsed' => true,
+            '#collapsed' => true
         ];
 
         $form[$this->formContainer]['main']['site_information'] = [
@@ -113,7 +113,7 @@ class DrupSettingsForm extends ConfigFormBase {
         $form[$this->formContainer]['main']['home_seo'] = [
             '#type' => 'details',
             '#title' => $this->t('Référencement de la page d\'accueil'),
-            '#open' => true,
+            '#open' => true
         ];
         $form[$this->formContainer]['main']['home_seo']['home_meta_title'] = [
             '#type' => 'textfield',
@@ -124,7 +124,7 @@ class DrupSettingsForm extends ConfigFormBase {
             '#type' => 'textfield',
             '#title' => $this->t('Meta Description'),
             '#drup_context' => null,
-            '#maxlength' => 250,
+            '#maxlength' => 250
         ];
         $form[$this->formContainer]['main']['home_seo']['home_h1'] = [
             '#type' => 'textfield',
@@ -144,7 +144,7 @@ class DrupSettingsForm extends ConfigFormBase {
                 $form[$this->formContainer]['main']['social_networks']['site_social_link_' . $network['id']] = [
                     '#type' => 'url',
                     '#title' => $network['title'],
-                    '#default_value' => $network['link_url'],
+                    '#default_value' => $network['link_url']->toString()
                 ];
             }
         }
