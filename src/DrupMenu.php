@@ -2,9 +2,9 @@
 
 namespace Drupal\drup;
 
+use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Menu\MenuLinkInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
-use Drupal\drup\Entity\ContentEntityBase;
 use Drupal\drup\Helper\DrupUrl;
 use Drupal\menu_link_content\Plugin\Menu\MenuLinkContent;
 
@@ -26,7 +26,7 @@ class DrupMenu {
     public static function translate(&$items, $languageId) {
         foreach ($items as $index => &$item) {
             if (($item['original_link'] instanceof \Drupal\menu_link_content\Plugin\Menu\MenuLinkContent) && ($entity = DrupUrl::loadEntity($item['url']))) {
-                if (!ContentEntityBase::isAllowed($entity, $languageId)) {
+                if (!\Drupal\drup\Entity\ContentEntityBase::isAllowed($entity, $languageId)) {
                     unset($items[$index]);
                 } else if (($entity = self::loadMenuItemEntityFromMenuLink($item['original_link'])) && !self::isMenuItemTranslated($entity, $languageId)) {
                     unset($items[$index]);
@@ -125,17 +125,17 @@ class DrupMenu {
     /**
      * Retourne les liens enfants
      *
-     * @param null $nid Nid du contenu parent. Si null, on utilise l'item de menu courant
+     * @param \Drupal\Core\Entity\ContentEntityBase|null $entity
      * @param string $menuName
-     * @param boolean $loadEntities Load l'entité Drupal associée à l'élément de menu
+     * @param bool $loadEntities
      *
      * @return array
      */
-    public static function getChildren($nid = null, $menuName = 'main', $loadEntities = true) {
+    public static function getChildren(ContentEntityBase $entity = null, $menuName = 'main', $loadEntities = true) {
         $navItems = [];
         $menuTreeService = \Drupal::menuTree();
 
-        if ($nid === null) {
+        if ($entity === null) {
             // This one will give us the active trail in *reverse order*.
             // Our current active link always will be the first array element.
             $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
@@ -146,7 +146,7 @@ class DrupMenu {
         } else {
             $parameters = new MenuTreeParameters();
             $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
-            $links = $menuLinkManager->loadLinksByRoute('entity.node.canonical', ['node' => $nid], $menuName);
+            $links = $menuLinkManager->loadLinksByRoute($entity->toUrl()->getRouteName(), $entity->toUrl()->getRouteParameters(), $menuName);
             /** @var MenuLinkContent $rootMenuItem */
             $rootMenuItem = array_pop($links);
             $parentLinkId = $rootMenuItem->getPluginId();
@@ -175,9 +175,9 @@ class DrupMenu {
             foreach ($menuItems['#items'] as $index => $item) {
                 $navItems[$index] = $item;
 
-                if ($loadEntities && ($entity = DrupUrl::loadEntity($item['url']))) {
+                if ($loadEntities && ($childEntity = DrupUrl::loadEntity($item['url']))) {
                     /** @var ContentEntityBase $entity */
-                    $navItems[$index]['entity'] = $entity;
+                    $navItems[$index]['entity'] = $childEntity;
                 }
             }
         }
