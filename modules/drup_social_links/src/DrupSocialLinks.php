@@ -2,6 +2,7 @@
 
 namespace Drupal\drup_social_links;
 
+use Drupal\Core\Url;
 use Drupal\drup\DrupPageEntity;
 use Drupal\language\Config\LanguageConfigOverride;
 
@@ -71,12 +72,16 @@ class DrupSocialLinks {
                 $items[$i]['link'] = (bool) $item['link'];
                 $items[$i]['share'] = (bool) $item['share'];
 
+                if (!$items[$i]['link_url'] instanceof Url) {
+                    $items[$i]['link_url'] = Url::fromUri($items[$i]['link_url']);
+                }
+
                 $options = explode(',', $item['options']);
                 $items[$i]['options'] = [];
                 if (!empty($options)) {
                     foreach ($options as $option) {
                         if (!empty($option)) {
-                            list($key, $value) = explode('=', $option);
+                            [$key, $value] = explode('=', $option);
                             $items[$i]['options'][trim($key)] = trim($value);
                         }
                     }
@@ -87,6 +92,8 @@ class DrupSocialLinks {
 
     /**
      * Retourne les liens vers les réseaux sociaux
+     *
+     * @return array
      */
     public static function getLinkItems() {
         $items = self::getItems();
@@ -102,13 +109,17 @@ class DrupSocialLinks {
 
     /**
      * Retourne les liens pour le partage sur les réseaux sociaux
+     *
+     * @param $currentEntity
+     *
+     * @return array
      */
-    public static function getShareItems() {
+    public static function getShareItems($currentEntity = null) {
         $items = self::getItems();
 
         if (!empty($items)) {
             $token = \Drupal::token();
-            $drupPageEntity = DrupPageEntity::loadEntity();
+            $drupPageEntity = $currentEntity === null ? DrupPageEntity::loadEntity() : $currentEntity;
 
             foreach ($items as $id => $item) {
                 if (!$item['share']) {
@@ -119,12 +130,12 @@ class DrupSocialLinks {
                 $shareUrlTokens = $token->scan($item['share_url']);
                 $replaceOptions = [];
 
-                if ($drupPageEntity->getEntityType() === 'node') {
-                    $replaceOptions['node'] = $drupPageEntity->getEntity();
+                if ($drupPageEntity) {
+                    $replaceOptions[$drupPageEntity->getEntityType()] = $drupPageEntity->getEntity();
                 }
 
                 foreach ($shareUrlTokens as $shareUrlTokenGroup => $shareUrlToken) {
-                    $items[$id]['share_url'] = $token->replace($item['share_url'], $replaceOptions);
+                    $items[$id]['share_url'] = Url::fromUri($token->replace($item['share_url'], $replaceOptions));
                 }
             }
         }

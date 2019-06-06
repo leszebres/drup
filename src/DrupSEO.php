@@ -142,6 +142,9 @@ abstract class DrupSEO {
             $drupSettingsUnd = new DrupSettings('und');
             $metatagManager = \Drupal::service('metatag.manager');
             $entityRepository = \Drupal::service('entity.repository');
+            if (empty($options['langcode'])) {
+                $options['langcode'] = \Drupal::languageManager()->getCurrentLanguage()->getId();
+            }
 
             $logo = false;
             if (\array_key_exists('logo:url', $tokens) || \array_key_exists('logo:width', $tokens) || \array_key_exists('logo:height', $tokens) || \array_key_exists('logo:type', $tokens)) {
@@ -250,7 +253,7 @@ abstract class DrupSEO {
 
                     if (!empty($networks)) {
                         foreach ($networks as $network) {
-                            $items[] = $network['link_url'];
+                            $items[] = $network['link_url']->toString();
                         }
                     }
 
