@@ -100,7 +100,10 @@ abstract class DrupSEO {
         ];
 
         // Coordonnées de contact
-        $info['tokens'][self::$tokenType]['contact:phone:internationalized'] = [
+        $info['tokens'][self::$tokenType]['contact:company'] = [
+            'name' => 'Société'
+        ];
+        $info['tokens'][self::$tokenType]['contact:phone:international'] = [
             'name' => 'N° de téléphone international'
         ];
         $info['tokens'][self::$tokenType]['contact:address'] = [
@@ -259,7 +262,10 @@ abstract class DrupSEO {
 
                     $replacements[$original] = implode(',', $items);
 
-                } elseif ($name === 'contact:phone:internationalized' && ($phone = $drupSettingsUnd->getValue('contact_infos_phone_number'))) {
+                } elseif ($name === 'contact:company' && ($company = $drupSettingsUnd->getValue('contact_infos_company'))) {
+                       $replacements[$original] = $company;
+
+                } elseif ($name === 'contact:phone:international' && ($phone = $drupSettingsUnd->getValue('contact_infos_phone_number'))) {
                     $regionCode = $drupSettingsUnd->getValue('contact_infos_country') === 'FR' ? '+33' : null;
 
                     $replacements[$original] = DrupString::formatPhoneNumber($phone, $regionCode);
