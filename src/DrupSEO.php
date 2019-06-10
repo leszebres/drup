@@ -52,50 +52,50 @@ abstract class DrupSEO {
         // Tokens associés au groupe SEO
 
         // Meta title/desc
-        $info['types'][self::$tokenType]['meta:front:title'] = [
+        $info['tokens'][self::$tokenType]['meta:front:title'] = [
             'name' => 'Méta "title" pour la page d\'accueil'
         ];
-        $info['types'][self::$tokenType]['meta:front:desc'] = [
+        $info['tokens'][self::$tokenType]['meta:front:desc'] = [
             'name' => 'Méta "description" pour la page d\'accueil'
         ];
-        $info['types'][self::$tokenType]['meta:title'] = [
+        $info['tokens'][self::$tokenType]['meta:title'] = [
             'name' => 'Meta "title" automatique'
         ];
-        $info['types'][self::$tokenType]['meta:desc'] = [
+        $info['tokens'][self::$tokenType]['meta:desc'] = [
             'name' => 'Meta "description" automatique'
         ];
 
         // Logo site
-        $info['types'][self::$tokenType]['logo:url'] = [
+        $info['tokens'][self::$tokenType]['logo:url'] = [
             'name' => 'Url du logo'
         ];
-        $info['types'][self::$tokenType]['logo:width'] = [
+        $info['tokens'][self::$tokenType]['logo:width'] = [
             'name' => 'Largeur du logo (px)'
         ];
-        $info['types'][self::$tokenType]['logo:height'] = [
+        $info['tokens'][self::$tokenType]['logo:height'] = [
             'name' => 'Hauteur du logo (px)'
         ];
-        $info['types'][self::$tokenType]['logo:type'] = [
+        $info['tokens'][self::$tokenType]['logo:type'] = [
             'name' => 'Type d\'image logo (image/png)'
         ];
 
         // Miniature node
-        $info['types'][self::$tokenType]['thumbnail:url'] = [
+        $info['tokens'][self::$tokenType]['thumbnail:url'] = [
             'name' => 'URL de la vignette',
             'description' => 'Avec le style d\'image "' . strtoupper(self::$imageStyle) . '"'
         ];
-        $info['types'][self::$tokenType]['thumbnail:type'] = [
+        $info['tokens'][self::$tokenType]['thumbnail:type'] = [
             'name' => 'Type d\'image de la vignette (image/jpg)'
         ];
-        $info['types'][self::$tokenType]['thumbnail:width'] = [
+        $info['tokens'][self::$tokenType]['thumbnail:width'] = [
             'name' => 'Largeur de la vignette (px)'
         ];
-        $info['types'][self::$tokenType]['thumbnail:height'] = [
+        $info['tokens'][self::$tokenType]['thumbnail:height'] = [
             'name' => 'Hauteur de la vignette (px)'
         ];
 
         // Réseaux sociaux
-        $info['types'][self::$tokenType]['socialnetworks:link:url:comma'] = [
+        $info['tokens'][self::$tokenType]['socialnetworks:link:url:comma'] = [
             'name' => 'URLs des liens vers les réseaux sociaux séparés par une virgule'
         ];
 
