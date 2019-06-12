@@ -3,8 +3,6 @@
 namespace Drupal\drup_router;
 
 use Drupal\drup\DrupPageEntity;
-use Drupal\drup\Entity\Node;
-use Drupal\drup\Entity\Term;
 
 /**
  * Class DrupRouter
@@ -90,19 +88,13 @@ class DrupRouter {
 
     /**
      * @param $routeName
-     *
      * @param null $context
      *
      * @return \Drupal\Core\Entity\EntityInterface|null
      */
     public function getEntity($routeName, $context = null) {
         if (($route = $this->getRoute($routeName)) && $routeEntityId = $this->getId($routeName, $context)) {
-            if ($route['targetType'] === 'taxonomy_term') {
-                return Term::load($routeEntityId);
-            }
-            if ($route['targetType'] === 'node') {
-                return Node::load($routeEntityId);
-            }
+            return \Drupal::entityTypeManager()->getStorage($route['targetType'])->load($routeEntityId);
         }
 
         return null;
@@ -120,7 +112,7 @@ class DrupRouter {
     public function getPath($routeName, $context = null) {
         if (($route = $this->getRoute($routeName)) && $routeEntityId = $this->getId($routeName, $context)) {
             $entityPath = ($route['targetType'] === 'taxonomy_term') ? 'taxonomy/term' : $route['targetType'];
-            return \Drupal::service('path.alias_manager')->getAliasByPath('/' . $entityPath . '/' . $routeEntityId);
+            return \Drupal::service('path.alias_manager')->getAliasByPath('/' . $entityPath . '/' . $routeEntityId, $this->getContext($context));
         }
 
         return null;

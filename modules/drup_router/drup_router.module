@@ -5,8 +5,6 @@
  * Contains drup_router.module.
  */
 
-use Drupal\drup\Entity\Node;
-
 /**
  * Implements hook_token_info().
  */
@@ -28,7 +26,7 @@ function drup_router_token_info() {
             $routeName = $drupRoute['routeName'];
             $tokensAvailable[$routeName] = [
                 'name' => $routeName,
-                'description' => 'Slug for ' . $routeName
+                'description' => 'Slug for ' . $routeName,
             ];
         }
     }
@@ -37,12 +35,13 @@ function drup_router_token_info() {
         'types' => $types,
         'tokens' => [
             $tokenType => $tokensAvailable,
-        ]
+        ],
     ];
 }
 
 /**
  * Implements hook_tokens().
+ *
  * @param $type
  * @param $tokens
  * @param array $data
@@ -56,22 +55,15 @@ function drup_router_tokens($type, $tokens, array $data, array $options, \Drupal
     $replacements = [];
 
     if ($type === $tokenType) {
-        $drupRouter = \Drupal::service('drup_router');
+        /** @var \Drupal\drup_router\DrupRouter $drupRouter */
+        $drupRouter = \Drupal::service('drup_router.router');
 
         foreach ($tokens as $name => $original) {
-            $routeID = $drupRouter->getID($name);
-            
-            if ($alias = \Drupal::service('path.alias_manager')->getAliasByPath('/node/'.$routeID)) {
+            if ($alias = $drupRouter->getPath($name, $options['langcode'])) {
                 $replacements[$original] = $alias;
-            } else {
-                $node = Node::load($routeID);
-
-                if ($node instanceof Node) {
-                    $replacements[$original] = $node->getTitle();
-                }
             }
         }
     }
-    
+
     return $replacements;
 }
