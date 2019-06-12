@@ -121,6 +121,53 @@ class DrupMenu {
         return false;
     }
 
+    /**
+     * Récupère le parent direct
+     *
+     * @param string $menuName
+     * @param bool $loadEntity
+     *
+     * @return array
+     */
+    public static function getParent($menuName = 'main', $loadEntity = true) {
+        $navItems = [];
+        $menuTreeService = \Drupal::menuTree();
+
+        $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
+        $activeTrail = array_values($parameters->activeTrail);
+
+        if (isset($activeTrail[1])) {
+            $parameters->setRoot($activeTrail[1]);
+            $parameters->setMaxDepth(1);
+            $parameters->onlyEnabledLinks();
+            $menuTree = $menuTreeService->load($menuName, $parameters);
+
+            // Optional: Native sort and access checks.
+            $manipulators = [
+                //['callable' => 'menu.default_tree_manipulators:checkNodeAccess'],
+                ['callable' => 'menu.default_tree_manipulators:checkAccess'],
+                ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
+            ];
+
+            $tree = $menuTreeService->transform($menuTree, $manipulators);
+            $menuItems = $menuTreeService->build($tree);
+            $menuItems['#cache']['max-age'] = 0;
+
+            if (!empty($menuItems['#items'])) {
+                foreach ($menuItems['#items'] as $index => $item) {
+                    $navItems = $item;
+
+                    if ($loadEntity && ($childEntity = DrupUrl::loadEntity($item['url']))) {
+                        /** @var ContentEntityBase $entity */
+                        $navItems['entity'] = $childEntity;
+                    }
+                }
+            }
+        }
+
+        return $navItems;
+    }
+
 
     /**
      * Retourne les liens enfants
