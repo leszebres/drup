@@ -4,3 +4,10 @@ drup.admin_list:
   route_name: drup_settings.admin_form
   parent: system.admin_config
   weight: -40
+
+drup.admin_parent:
+  title: 'Configuration du site'
+  description: 'Configuration spécifique du site'
+  route_name: drup_settings.admin_form
+  parent: system.admin
+  weight: 50
