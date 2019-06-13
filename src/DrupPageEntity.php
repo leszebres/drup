@@ -2,6 +2,7 @@
 
 namespace Drupal\drup;
 
+use Drupal\drup\Entity\ContentEntityBase;
 use Drupal\drup\Helper\DrupRequest;
 
 /**
@@ -69,14 +70,14 @@ class DrupPageEntity {
 
                 if (is_object($entity)) {
                     $data->entity = $entity;
-                    $data->id = method_exists($data->entity, 'id') ? (int)$data->entity->id() : null;
+                    $data->id = method_exists($data->entity, 'id') ? $data->entity->id() : null;
 
                 } else {
                     if (\Drupal::entityTypeManager()->getDefinition($entityType, false) === null) {
                         return $data;
                     }
                     $data->entity = \Drupal::entityTypeManager()->getStorage($entityType)->load($entity);
-                    $data->id = (int) $entity;
+                    $data->id = $entity;
                 }
 
                 $data->type = $entityType;
@@ -123,6 +124,15 @@ class DrupPageEntity {
      */
     public function getBundle() {
         return $this->bundle;
+    }
+
+    /**
+     * @param \Drupal\drup\Entity\ContentEntityBase $entity
+     *
+     * @return bool
+     */
+    public function is(\Drupal\Core\Entity\ContentEntityBase $entity) {
+        return ($entity->bundle() === $this->getBundle() && $entity->id() === $this->id());
     }
 
     /**
