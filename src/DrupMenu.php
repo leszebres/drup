@@ -239,7 +239,7 @@ class DrupMenu {
      *
      * @return array
      */
-    public static function getSiblings($menuName = 'main') {
+    public static function getSiblings($menuName = 'main', $loadEntities = true) {
         $navItems = [];
         $menuTreeService = \Drupal::menuTree();
 
@@ -273,6 +273,11 @@ class DrupMenu {
         if (!empty($menuItems['#items'])) {
             foreach ($menuItems['#items'] as $index => $item) {
                 $navItems[$index] = $item;
+
+                if ($loadEntities && ($childEntity = DrupUrl::loadEntity($item['url']))) {
+                    /** @var ContentEntityBase $entity */
+                    $navItems[$index]['entity'] = $childEntity;
+                }
             }
         }
 
