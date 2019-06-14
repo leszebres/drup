@@ -30,6 +30,11 @@ class DrupFile {
     public $image;
 
     /**
+     * @var \Drupal\file\Entity\File
+     */
+    public $field_value;
+
+    /**
      * DrupFileImage constructor.
      *
      * @param \Drupal\file\Entity\File $fileEntity

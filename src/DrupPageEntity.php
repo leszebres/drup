@@ -2,7 +2,6 @@
 
 namespace Drupal\drup;
 
-use Drupal\drup\Entity\ContentEntityBase;
 use Drupal\drup\Helper\DrupRequest;
 
 /**

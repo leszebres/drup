@@ -2,7 +2,6 @@
 
 namespace Drupal\drup;
 
-use Drupal\Core\Language\LanguageManager;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Url;
 use Drupal\drup\Entity\Node;
@@ -137,7 +136,7 @@ abstract class DrupSEO {
      */
     public static function tokens(&$replacements, $type, array $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
         if (DrupRequest::isAdminRoute()) {
-            return false;
+            return;
         }
 
         if ($type === self::$tokenType) {
@@ -157,6 +156,7 @@ abstract class DrupSEO {
             // Node
             $node = $drupField = false;
             if (isset($data['node']) && $data['node'] instanceof Node) {
+                /** @var \Drupal\drup\Entity\Node $node */
                 $node = $entityRepository->getTranslationFromContext($data['node'], $options['langcode']);
                 $drupField = $node->drupField();
             }
