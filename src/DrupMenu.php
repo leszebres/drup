@@ -3,6 +3,7 @@
 namespace Drupal\drup;
 
 use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Menu\MenuLinkInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\drup\Helper\DrupUrl;
@@ -91,22 +92,27 @@ class DrupMenu {
     }
 
     /**
+     * Vérifie une entité a pour parent une autre entité
+     *
      * @param $parentEntityId
+     * @param \Drupal\Core\Entity\EntityInterface|null $currentEntity
      * @param string $menuName
      *
      * @return bool
-     * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-     * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
      */
-    public static function isChildOf($parentEntityId, $menuName = 'main') {
-        $menuTreeService = \Drupal::menuTree();
-
-        $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
-        $activeTrail = $parameters->activeTrail;
-
-        // Remove current item
-        $activeTrail = array_reverse($activeTrail);
-        array_pop($activeTrail);
+    public static function isChildOf($parentEntityId, EntityInterface $currentEntity = null, $menuName = 'main') {
+        if ($currentEntity === null) {
+            $menuTreeService = \Drupal::menuTree();
+            $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
+            $activeTrail = $parameters->activeTrail;
+            $activeTrail = array_reverse($activeTrail);
+            array_pop($activeTrail);
+        } else {
+            /** @var \Drupal\Core\Menu\MenuLinkManager $menuLinkManager */
+            $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
+            $links = $menuLinkManager->loadLinksByRoute($currentEntity->toUrl()->getRouteName(), $currentEntity->toUrl()->getRouteParameters(), $menuName);
+            $activeTrail = $menuLinkManager->getParentIds(current(array_keys($links)));
+        }
 
         foreach ($activeTrail as $pluginId) {
             if ($menuLink = self::loadMenuItemEntityFromPluginId($pluginId)) {
@@ -172,13 +178,13 @@ class DrupMenu {
     /**
      * Retourne les liens enfants
      *
-     * @param \Drupal\Core\Entity\ContentEntityBase|null $entity
+     * @param \Drupal\Core\Entity\EntityInterface|null $entity
      * @param string $menuName
      * @param bool $loadEntities
      *
      * @return array
      */
-    public static function getChildren(ContentEntityBase $entity = null, $menuName = 'main', $loadEntities = true) {
+    public static function getChildren(EntityInterface $entity = null, $menuName = 'main', $loadEntities = true) {
         $navItems = [];
         $menuTreeService = \Drupal::menuTree();
 
