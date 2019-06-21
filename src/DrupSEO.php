@@ -122,6 +122,14 @@ abstract class DrupSEO {
         $info['tokens'][self::$tokenType]['language:available:name:comma'] = [
             'name' => 'Liste des langues (nom) disponibles séparées par une virgule'
         ];
+
+        // Recherche
+        $info['tokens'][self::$tokenType]['search:query'] = [
+            'name' => 'Url utilisée pour la recherche avec ?q=keys'
+        ];
+        $info['tokens'][self::$tokenType]['search:query-input'] = [
+            'name' => 'Paramètres de l\'input utilisé pour la recherche'
+        ];
     }
 
     /**
@@ -295,8 +303,20 @@ abstract class DrupSEO {
 
                 } elseif ($name === 'contact:country' && ($country = $drupSettingsUnd->getValue('contact_infos_country'))) {
                      $replacements[$original] = $country;
+
+                } elseif ($name === 'search:query') {
+                    $replacements[$original] = Url::fromUri('internal:/search', [
+                        'query' => [
+                            'q' => 'keys'
+                        ],
+                        'absolute' => true
+                    ])->toString();
+
+                } elseif ($name === 'search:query-input') {
+                    $replacements[$original] = 'required name=keys';
                 }
             }
+
         } elseif ($type === 'current-page') {
             // Tokens
             foreach ($tokens as $name => $original) {
