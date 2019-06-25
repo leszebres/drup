@@ -13,7 +13,7 @@ function drup_router_token_info() {
 
     $types[$tokenType] = [
         'name' => t('Custom Routes'),
-        'description' => t('Get custom routes slugs from DrupRouter module'),
+        'description' => t('Get custom routes slugs from DrupRouter module')
     ];
 
     $tokensAvailable = [];
@@ -26,7 +26,7 @@ function drup_router_token_info() {
             $routeName = $drupRoute['routeName'];
             $tokensAvailable[$routeName] = [
                 'name' => $routeName,
-                'description' => 'Slug for ' . $routeName,
+                'description' => 'Slug for ' . $routeName
             ];
         }
     }
@@ -34,8 +34,8 @@ function drup_router_token_info() {
     return [
         'types' => $types,
         'tokens' => [
-            $tokenType => $tokensAvailable,
-        ],
+            $tokenType => $tokensAvailable
+        ]
     ];
 }
 
@@ -56,7 +56,11 @@ function drup_router_tokens($type, $tokens, array $data, array $options, \Drupal
 
     if ($type === $tokenType) {
         /** @var \Drupal\drup_router\DrupRouter $drupRouter */
-        $drupRouter = \Drupal::service('drup_router.router');
+        $drupRouter = \Drupal::service('drup_router');
+
+        if (empty($options['langcode'])) {
+            $options['langcode'] = \Drupal::languageManager()->getCurrentLanguage()->getId();
+        }
 
         foreach ($tokens as $name => $original) {
             if ($alias = $drupRouter->getPath($name, $options['langcode'])) {
