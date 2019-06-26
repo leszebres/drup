@@ -30,7 +30,8 @@ function drup_settings_token_info() {
 
     // @todo config dans DrupSite ?
     $settings = [
-        'site_emails_from' => 'Site Emails From'
+        'site_emails_from' => 'Site Emails From',
+        'contact_infos_email' => 'Site Email Contact'
     ];
 
     foreach ($types as $key => $type) {
