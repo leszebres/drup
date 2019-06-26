@@ -6,4 +6,82 @@
  */
 
 
+/**
+ * Implements hook_token_info().
+ */
+function drup_settings_token_info() {
+    $tokenType = 'drup_settings';
 
+    $types = [
+        $tokenType => [
+            'name' => t('Current language'),
+            'description' => t('Get custom values from DrupSettings module')
+        ],
+        $tokenType . '_und' => [
+            'name' => t('Neutral language'),
+            'description' => t('Get custom values from DrupSettings module')
+        ]
+    ];
+
+    $output = [
+        'types' => $types,
+        'tokens' => []
+    ];
+
+    // @todo config dans DrupSite ?
+    $settings = [
+        'site_emails_from' => 'Site Emails From'
+    ];
+
+    foreach ($types as $key => $type) {
+        $output['tokens'][$key] = [];
+
+        foreach ($settings as $id => $label) {
+            $output['tokens'][$key][$id] = [
+                'name' => $label . ' (' . $type['name'] . ')',
+                'description' => ''
+            ];
+        }
+
+        $output['types'][$key]['name'] = 'DrupSettings Values ' . $output['types'][$key]['name'];
+    }
+
+    return $output;
+}
+
+/**
+ * Implements hook_tokens().
+ *
+ * @param $type
+ * @param $tokens
+ * @param array $data
+ * @param array $options
+ * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+ *
+ * @return array
+ */
+function drup_settings_tokens($type, $tokens, array $data, array $options, \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata) {
+    $tokenType = 'drup_settings';
+    $replacements = [];
+
+    if (strpos($type, $tokenType) === 0) {
+        /** @var \Drupal\drup_settings\DrupSettings $drupSettings */
+        $drupSettings = \Drupal::service('drup_settings');
+
+        if (empty($options['langcode'])) {
+            $options['langcode'] = \Drupal::languageManager()->getCurrentLanguage()->getId();
+        }
+
+        if ($type === $tokenType . '_und') {
+            $drupSettings->setNeutralLang();
+        } else {
+            $drupSettings->setLanguage($options['langcode']);
+        }
+
+        foreach ($tokens as $name => $original) {
+            $replacements[$original] = $drupSettings->getValue($name);
+        }
+    }
+
+    return $replacements;
+}
