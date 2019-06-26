@@ -16,11 +16,24 @@ class DrupMediaImage extends DrupMedia {
      * DrupMediaImage constructor.
      *
      * @param int|int[]|Media|Media[] $medias
+     * @param int|int[]|Media|Media[]|bool $fallbackId Défini des médias à utiliser si $medias n'est pas utilisable.
+     * Si true, on utilise le média par défaut défini via DrupSettings.
+     * Sinon on utilise les données spécifiquement déclarées.
      * @param null $fileField
      */
-    public function __construct($medias, $fileField = null) {
+    public function __construct($medias, $fallbackId = false, $fileField = null) {
         $this->type = 'image';
         parent::__construct($medias, $fileField);
+
+        // Fallback on other medias
+        if ($fallbackId !== false && empty($this->mediasData)) {
+            if ($fallbackId === true) {
+                $fallbackId = self::getFallbackId();
+            }
+            $medias = $fallbackId;
+
+            parent::__construct($medias, $fileField);
+        }
     }
 
     /**

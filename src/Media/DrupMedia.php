@@ -19,19 +19,19 @@ class DrupMedia {
      *
      * @var \Drupal\media\Entity\Media[]
      */
-    protected $mediasList;
+    protected $mediasList = [];
 
     /**
      * Data for each medias
      *
-     * @var
+     * @var array
      */
-    protected $mediasData;
+    protected $mediasData = [];
 
     /**
      * Media type (ex : Image or File)
      *
-     * @var
+     * @var string
      */
     protected $type;
 
@@ -58,10 +58,12 @@ class DrupMedia {
     public function __construct($medias, $fileField = null) {
         $this->languageId = \Drupal::languageManager()->getCurrentLanguage()->getId();
 
-        $this->filesField = $this->formatFieldName($fileField);
-        $this->mediasList = $this->formatMedias($medias);
+        if (!empty($medias)) {
+            $this->filesField = $this->formatFieldName($fileField);
+            $this->mediasList = $this->formatMedias($medias);
 
-        $this->mediasData = $this->getData();
+            $this->mediasData = $this->getData();
+        }
     }
 
     /**

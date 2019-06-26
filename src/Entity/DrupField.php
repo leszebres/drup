@@ -125,18 +125,19 @@ class DrupField {
     }
 
     /**
-     * @param string $field
-     * @param string $type Type de media (image|document|video_external)
+     * @param $field
+     * @param $type
+     * @param mixed ...$parameters
      *
-     * @return null|\Drupal\drup\Media\DrupMediaImage|\Drupal\drup\Media\DrupMediaDocument|\Drupal\drup\Media\DrupMediaVideoExternal
+     * @return null
      */
-    public function getDrupMedia($field, $type) {
-        if ($entities = $this->getReferencedEntities($field)) {
-            $className = '\\Drupal\\drup\\Media\\DrupMedia' . DrupString::toCamelCase($type);
+    public function getDrupMedia($field, $type, ...$parameters) {
+        $entities = $this->getReferencedEntities($field);
+        $className = '\\Drupal\\drup\\Media\\DrupMedia' . DrupString::toCamelCase($type);
 
-            if (class_exists($className)) {
-                return new $className($entities);
-            }
+        if (class_exists($className)) {
+            $parameters = array_merge([$entities], $parameters);
+            return new $className(...$parameters);
         }
 
         return null;
