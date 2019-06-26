@@ -67,6 +67,13 @@ class DrupMedia {
     }
 
     /**
+     * @return bool
+     */
+    public function isEmpty() {
+        return empty($this->mediasData);
+    }
+
+    /**
      * Get the media legend (from media entity field)
      *
      * @param int $index

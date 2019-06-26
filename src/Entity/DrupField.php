@@ -129,7 +129,7 @@ class DrupField {
      * @param $type
      * @param mixed ...$parameters
      *
-     * @return null
+     * @return null|\Drupal\drup\Media\DrupMediaImage|\Drupal\drup\Media\DrupMediaDocument|\Drupal\drup\Media\DrupMediaVideoExternal
      */
     public function getDrupMedia($field, $type, ...$parameters) {
         $entities = $this->getReferencedEntities($field);
@@ -137,7 +137,9 @@ class DrupField {
 
         if (class_exists($className)) {
             $parameters = array_merge([$entities], $parameters);
-            return new $className(...$parameters);
+            $drupMedia = new $className(...$parameters);
+
+            return !$drupMedia->isEmpty() ? $drupMedia : null;
         }
 
         return null;
