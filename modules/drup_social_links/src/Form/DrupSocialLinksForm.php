@@ -78,10 +78,10 @@ class DrupSocialLinksForm extends ConfigFormBase {
         $help = '<br/><br/><hr/><br/>';
         $help .= '<h3>Exemples d\'urls de partage :</h3>';
         $help .= '<ul>';
-            $help .= '<li>Facebook : https://www.facebook.com/sharer/sharer.php?u=[current-page:url]&t=[site:title] : [seo:meta:title]</li>';
-            $help .= '<li>Twitter : https://twitter.com/share?url=[current-page:url]&text=[site:title] : [seo:meta:title]</li>';
+            $help .= '<li>Facebook : https://www.facebook.com/sharer/sharer.php?u=[current-page:url]&t=[seo:meta:title]</li>';
+            $help .= '<li>Twitter : https://twitter.com/share?url=[current-page:url]&text=[seo:meta:title]</li>';
             $help .= '<li>Linkedin : https://www.linkedin.com/shareArticle?url=[current-page:url]&title=[seo:meta:title]</li>';
-            $help .= '<li>Email : mailto:?subject=[[site:title] : [seo:meta:title]&body=[current-page:url]</li>';
+            $help .= '<li>Email : mailto:?subject=[seo:meta:title]&body=[current-page:url]</li>';
             $help .= '<li>Pinterest : https://pinterest.com/pin/create/button/?url=[current-page:url]&description=[seo:meta:title]</li>';
         $help .= '</ul><br/><br/>';
         $form['help'] = [
