@@ -73,6 +73,10 @@ class DrupSocialLinks {
                 $items[$i]['share'] = (bool) $item['share'];
 
                 if (!$items[$i]['link_url'] instanceof Url) {
+                    if (empty($items[$i]['link_url'])) {
+                        continue;
+                    }
+
                     $items[$i]['link_url'] = Url::fromUri($items[$i]['link_url']);
                 }
 
@@ -100,7 +104,7 @@ class DrupSocialLinks {
 
         if (!empty($items)) {
             $items = array_filter($items, function ($item) {
-                return $item['link'];
+                return (bool) $item['link'];
             });
         }
 
@@ -119,10 +123,10 @@ class DrupSocialLinks {
 
         if (!empty($items)) {
             $token = \Drupal::token();
-            $drupPageEntity = $currentEntity === null ? DrupPageEntity::loadEntity() : $currentEntity;
+            $drupPageEntity = $currentEntity ?? DrupPageEntity::loadEntity();
 
             foreach ($items as $id => $item) {
-                if (!$item['share']) {
+                if ((bool) $item['share'] === false) {
                     unset($items[$id]);
                     continue;
                 }
