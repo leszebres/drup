@@ -4,6 +4,7 @@ namespace Drupal\drup_settings\Form;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfigFormBase;
+use Drupal\drup\Media\DrupFile;
 use Drupal\drup_settings\DrupSettings;
 use Drupal\drup_social_links\DrupSocialLinks;
 use Drupal\user\Entity\User;
@@ -41,14 +42,17 @@ class DrupSettingsForm extends ConfigFormBase {
      * {@inheritdoc}
      */
     protected function getEditableConfigNames() {
-        return [DrupSettings::getConfigName()];
+        return [
+            DrupSettings::getConfigValuesName(),
+            DrupSettings::getConfigContextsName()
+        ];
     }
 
     /**
      * {@inheritdoc}
      */
     public function buildForm(array $form, FormStateInterface $form_state) {
-        $this->drupSettings = new DrupSettings();
+        $this->drupSettings = \Drupal::service('drup_settings');
 
         $form[$this->formContainer] = [
             '#type' => 'horizontal_tabs',
@@ -83,7 +87,7 @@ class DrupSettingsForm extends ConfigFormBase {
         $form[$this->formContainer]['main']['site_information']['site_slogan'] = [
             '#type' => 'textfield',
             '#title' => $this->t('Slogan'),
-            '#drup_context' => null
+            '#drup_context' => 'und'
         ];
         $form[$this->formContainer]['main']['site_information']['site_emails_from'] = [
             '#type' => 'email',
@@ -176,6 +180,39 @@ class DrupSettingsForm extends ConfigFormBase {
     }
 
     /**
+     * @inheritDoc
+     */
+    public function submitForm(array &$form, FormStateInterface $form_state) {
+        $values = $form_state->getValues();
+        $drupSocialLinksConfig = DrupSocialLinks::getConfig();
+        $drupSocialLinksItems = $drupSocialLinksConfig->get('items');
+
+        foreach ($values as $key => $value) {
+            // Custom social links
+            if (strpos($key, 'site_social_link_') !== false) {
+                $socialId = str_replace('site_social_link_', '', $key);
+
+                if (isset($drupSocialLinksItems[$socialId])) {
+                    $drupSocialLinksItems[$socialId]['link_url'] = $value;
+                    $drupSocialLinksConfig->set('items', $drupSocialLinksItems);
+                    $drupSocialLinksConfig->save();
+                }
+            } else {
+                if (isset($this->formItemsData[$key])) {
+                    $this->drupSettings->set($key, $value, $this->formItemsData[$key]->context);
+
+                    // Files
+                    if (!empty($value) && in_array($this->formItemsData[$key]->type, ['managed_file'])) {
+                        DrupFile::setPermanent($value);
+                    }
+                }
+            }
+        }
+
+        parent::submitForm($form, $form_state);
+    }
+
+    /**
      * Ajoute les default_value + description des champs automatiquement selon la clé #drup_context
      * @param $form
      * @param $form_state
@@ -184,7 +221,6 @@ class DrupSettingsForm extends ConfigFormBase {
         if (is_array($items)) {
             foreach ($items as $key => &$item) {
                 if (is_array($item) && array_key_exists('#drup_context', $item) && empty($item['#default_value'])) {
-                    $this->drupSettings->setLanguage($item['#drup_context']);
 
                     // Save info about current form item
                     $this->formItemsData[$key] = (object) [
@@ -193,7 +229,8 @@ class DrupSettingsForm extends ConfigFormBase {
                     ];
 
                     // Set default value
-                    $item['#default_value'] = $this->drupSettings->getValue($key);
+                    $item['#default_value'] = $this->drupSettings->getValue($key, $item['#drup_context']);
+
                     if ($item['#default_value'] !== null && $item['#type'] === 'entity_autocomplete') {
                         $item['#default_value'] = \Drupal::entityTypeManager()->getStorage($item['#target_type'])->load($item['#default_value']);
                     }

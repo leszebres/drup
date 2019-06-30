@@ -14,11 +14,7 @@ function drup_settings_token_info() {
 
     $types = [
         $tokenType => [
-            'name' => t('Current language'),
-            'description' => t('Get custom values from DrupSettings module')
-        ],
-        $tokenType . '_und' => [
-            'name' => t('Neutral language'),
+            'name' => t('DrupSettings Variables'),
             'description' => t('Get custom values from DrupSettings module')
         ]
     ];
@@ -43,8 +39,6 @@ function drup_settings_token_info() {
                 'description' => ''
             ];
         }
-
-        $output['types'][$key]['name'] = 'DrupSettings Values ' . $output['types'][$key]['name'];
     }
 
     return $output;
@@ -68,16 +62,6 @@ function drup_settings_tokens($type, $tokens, array $data, array $options, \Drup
     if (strpos($type, $tokenType) === 0) {
         /** @var \Drupal\drup_settings\DrupSettings $drupSettings */
         $drupSettings = \Drupal::service('drup_settings');
-
-        if (empty($options['langcode'])) {
-            $options['langcode'] = \Drupal::languageManager()->getCurrentLanguage()->getId();
-        }
-
-        if ($type === $tokenType . '_und') {
-            $drupSettings->setNeutralLang();
-        } else {
-            $drupSettings->setLanguage($options['langcode']);
-        }
 
         foreach ($tokens as $name => $original) {
             $replacements[$original] = $drupSettings->getValue($name);

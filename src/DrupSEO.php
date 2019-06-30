@@ -148,8 +148,8 @@ abstract class DrupSEO {
         }
 
         if ($type === self::$tokenType) {
-            $drupSettings = new DrupSettings();
-            $drupSettingsUnd = new DrupSettings('und');
+            /** @var DrupSettings $drupSettings */
+            $drupSettings = \Drupal::service('drup_settings');
             $metatagManager = \Drupal::service('metatag.manager');
             $entityRepository = \Drupal::service('entity.repository');
             if (empty($options['langcode'])) {
@@ -270,11 +270,11 @@ abstract class DrupSEO {
 
                     $replacements[$original] = implode(',', $items);
 
-                } elseif ($name === 'contact:company' && ($company = $drupSettingsUnd->getValue('contact_infos_company'))) {
+                } elseif ($name === 'contact:company' && ($company = $drupSettings->getValue('contact_infos_company'))) {
                        $replacements[$original] = $company;
 
-                } elseif ($name === 'contact:phone:international' && ($phone = $drupSettingsUnd->getValue('contact_infos_phone_number'))) {
-                    $regionCode = $drupSettingsUnd->getValue('contact_infos_country') === 'FR' ? '+33' : null;
+                } elseif ($name === 'contact:phone:international' && ($phone = $drupSettings->getValue('contact_infos_phone_number'))) {
+                    $regionCode = $drupSettings->getValue('contact_infos_country') === 'FR' ? '+33' : null;
 
                     $replacements[$original] = DrupString::formatPhoneNumber($phone, $regionCode);
 
@@ -292,16 +292,16 @@ abstract class DrupSEO {
 
                     $replacements[$original] = implode(',', $items);
 
-                } elseif ($name === 'contact:address' && ($address = $drupSettingsUnd->getValue('contact_infos_address'))) {
+                } elseif ($name === 'contact:address' && ($address = $drupSettings->getValue('contact_infos_address'))) {
                      $replacements[$original] = str_replace("\r", ', ', $address);
 
-                } elseif ($name === 'contact:zipcode' && ($zipcode = $drupSettingsUnd->getValue('contact_infos_zipcode'))) {
+                } elseif ($name === 'contact:zipcode' && ($zipcode = $drupSettings->getValue('contact_infos_zipcode'))) {
                      $replacements[$original] = $zipcode;
 
-                } elseif ($name === 'contact:city' && ($city = $drupSettingsUnd->getValue('contact_infos_city'))) {
+                } elseif ($name === 'contact:city' && ($city = $drupSettings->getValue('contact_infos_city'))) {
                      $replacements[$original] = $city;
 
-                } elseif ($name === 'contact:country' && ($country = $drupSettingsUnd->getValue('contact_infos_country'))) {
+                } elseif ($name === 'contact:country' && ($country = $drupSettings->getValue('contact_infos_country'))) {
                      $replacements[$original] = $country;
 
                 } elseif ($name === 'search:query') {
@@ -382,13 +382,15 @@ abstract class DrupSEO {
      */
     public static function addSiteTitle(&$string, $separator = '|') {
         if (strpos($string, $separator) === false) {
+            $drupSettings = \Drupal::service('drup_settings');
+
             // Page number
             if ($page = pager_find_page()) {
                 $string .= ' - ' . t('Page') . ' ' . $page;
             }
 
             // Site title
-            $string .= ' ' . $separator . ' ' . (new DrupSettings())->getValue('site_name');
+            $string .= ' ' . $separator . ' ' . $drupSettings->getValue('site_name');
         }
     }
 

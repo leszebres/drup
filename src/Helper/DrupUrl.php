@@ -3,7 +3,6 @@
 namespace Drupal\drup\Helper;
 
 use Drupal\Core\Url;
-use Drupal\drup_settings\DrupSettings;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
