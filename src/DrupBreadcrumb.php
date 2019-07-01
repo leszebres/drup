@@ -2,13 +2,18 @@
 
 namespace Drupal\drup;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Breadcrumb\Breadcrumb;
 use Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Routing\RequestContext;
+use Drupal\Core\Routing\RouteMatch;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
 use Drupal\drup\Entity\Term;
 use Drupal\drup\Helper\DrupRequest;
 use Drupal\drup\Entity\DrupField;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class DrupBreadcrumb
@@ -81,6 +86,7 @@ class DrupBreadcrumb implements BreadcrumbBuilderInterface {
     public function build(RouteMatchInterface $route_match) {
         $breadcrumb = new Breadcrumb();
         $breadcrumb->addCacheContexts(['route']);
+
         $links = [
             Link::createFromRoute(t('Home'), '<front>')
         ];
@@ -91,6 +97,20 @@ class DrupBreadcrumb implements BreadcrumbBuilderInterface {
                     // DrupRouter route
                     case 'drup_route':
                         if ($entity = $this->drupRouter->getEntity($id)) {
+                            $links[] = Link::fromTextAndUrl($entity->getName(), $entity->toUrl());
+                        }
+                        break;
+
+                    // DrupRouter route with menu active trail
+                    case 'drup_route_parents':
+                        if ($entity = $this->drupRouter->getEntity($id)) {
+                            $menuTreeItems = DrupMenu::getParents($entity);
+
+                            if (!empty($menuTreeItems)) {
+                                foreach ($menuTreeItems as $index => $menuTreeItem) {
+                                    $links[] = Link::fromTextAndUrl($menuTreeItem['title'], $menuTreeItem['url']);
+                                }
+                            }
                             $links[] = Link::fromTextAndUrl($entity->getName(), $entity->toUrl());
                         }
                         break;
