@@ -170,17 +170,20 @@ class DrupMenu {
         $menuItems['#cache']['max-age'] = 0;
 
         $navItems = self::extractActiveTrail($menuItems['#items'], $menuItemsInActiveTrail);
-        array_pop($navItems);
 
-        if ($maxDepth !== null) {
-            $navItems = array_slice($navItems, count($navItems) - $maxDepth, $maxDepth);
-        }
+        if (!empty($navItems)) {
+            array_pop($navItems);
 
-        if ($loadEntities === true && !empty($menuItemsInActiveTrail)) {
-            foreach ($navItems as $index => $navItem) {
-                if ($loadEntities && ($entity = DrupUrl::loadEntity($navItem['url']))) {
-                    /** @var ContentEntityBase $entity */
-                    $navItems[$index]['entity'] = $entity;
+            if ($maxDepth !== null) {
+                $navItems = array_slice($navItems, count($navItems) - $maxDepth, $maxDepth);
+            }
+
+            if ($loadEntities === true && !empty($menuItemsInActiveTrail)) {
+                foreach ($navItems as $index => $navItem) {
+                    if ($loadEntities && ($entity = DrupUrl::loadEntity($navItem['url']))) {
+                        /** @var ContentEntityBase $entity */
+                        $navItems[$index]['entity'] = $entity;
+                    }
                 }
             }
         }
