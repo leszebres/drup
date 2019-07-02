@@ -49,7 +49,7 @@ class DrupBreadcrumb implements BreadcrumbBuilderInterface {
      */
     public function applies(RouteMatchInterface $route_match) {
         if (!DrupRequest::isAdminRoute()) {
-            $this->drupPageEntity = DrupPageEntity::loadEntity();
+            $this->drupPageEntity = \Drupal::service('drup_page_entity');
             $this->drupRouter = \Drupal::service('drup_router');
             $this->breadcrumbItems = [];
 

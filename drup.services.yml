@@ -1,0 +1,4 @@
+services:
+  drup_page_entity:
+    class: Drupal\drup\DrupPageEntity
+    arguments: []

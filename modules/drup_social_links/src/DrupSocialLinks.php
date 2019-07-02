@@ -123,7 +123,7 @@ class DrupSocialLinks {
 
         if (!empty($items)) {
             $token = \Drupal::token();
-            $drupPageEntity = $currentEntity ?? DrupPageEntity::loadEntity();
+            $drupPageEntity = $currentEntity ?? \Drupal::service('drup_page_entity');
 
             foreach ($items as $id => $item) {
                 if ((bool) $item['share'] === false) {

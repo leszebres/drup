@@ -294,8 +294,10 @@ abstract class DrupBlockAdminBase extends BlockBase {
         if (DrupRequest::isFront()) {
             return 'front';
         }
-        if ($entity = DrupPageEntity::loadEntity()) {
-            return $entity->getEntityType() . '/' . $entity->id();
+        /** @var \Drupal\drup\DrupPageEntity $drupPageEntity */
+        $drupPageEntity = \Drupal::service('drup_page_entity');
+        if ($drupPageEntity->id()) {
+            return $drupPageEntity->getEntityType() . '/' . $drupPageEntity->id();
         }
 
         return null;

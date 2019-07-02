@@ -83,7 +83,8 @@ class Node extends \Drupal\node\Entity\Node {
                 'sort' => 'DESC'
             ]
         ];
-        $drupPageEntity = DrupPageEntity::loadEntity();
+        /** @var \Drupal\drup\DrupPageEntity $drupPageEntity */
+        $drupPageEntity = \Drupal::service('drup_page_entity');
 
         if ($drupPageEntity->getEntity() !== null) {
             foreach ($entities as $type => $filters) {

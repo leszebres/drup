@@ -38,7 +38,7 @@ class DrupRouter {
         $this->routes = \Drupal::config('drup.routes')->get('routes');
         $this->defaultContext = \Drupal::languageManager()->getDefaultLanguage()->getId();
         $this->currentLanguageId = \Drupal::languageManager()->getCurrentLanguage()->getId();
-        $this->entity = DrupPageEntity::loadEntity();
+        $this->entity = \Drupal::service('drup_page_entity');
     }
 
     /**
