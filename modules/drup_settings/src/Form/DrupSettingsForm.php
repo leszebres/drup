@@ -244,6 +244,9 @@ class DrupSettingsForm extends ConfigFormBase {
                     }
                 }
 
+                // Save #drup_context for each key
+                $this->drupSettings->setConfigContexts($this->formItemsData);
+
                 $this->populateDefaultValues($item, $form_state);
             }
         }
