@@ -82,16 +82,15 @@ class DrupSettings {
         $this->configContexts = \Drupal::service('config.factory')->getEditable(self::getConfigContextsName());
 
         $this->languageManager = \Drupal::languageManager();
-        $this->setContext($context);
+        $this->applyContext($context);
     }
-
 
     /**
      * Applique un contexte à l'ensemble de la classe, et réinstancie la config des variables en fonction
      *
      * @param string|null $context
      */
-    public function setContext(string $context = null) {
+    public function applyContext(string $context = null) {
         if ($context === null) {
             $context = $this->languageManager->getCurrentLanguage()->getId();
         }
@@ -105,8 +104,8 @@ class DrupSettings {
     /**
      * Applique le contexte commun
      */
-    public function setNeutralContext() {
-        $this->setContext(self::$contextNeutral);
+    public function applyNeutralContext() {
+        $this->applyContext(self::$contextNeutral);
     }
 
     /**
@@ -128,24 +127,24 @@ class DrupSettings {
      * Recherche dans la config toutes les variables commençant par un motif
      *
      * @param string $pattern        Motif à cherche (exemple : contact)
-     * @param string|null $context
      * @param bool $trimSearch       Enlève la valeur de $search des indexes du tableau de résultats (ex : contact_phone => phone)
+     * @param string|null $context
      *
      * @return array
      */
-    public function searchValues(string $pattern, string $context = null, $trimSearch = true) {
+    public function searchValues(string $pattern, $trimSearch = true, string $context = null) {
         $values = [];
 
         $pattern = $this->formatKey($pattern);
 
-        $context = $context ?? $this->context;
-        $config = ($context === $this->context) ? $this->getConfigValues() : $this->getConfigValuesByContext($context);
-
-        foreach ($config->get() as $key => $value) {
+        $contexts = $this->getContexts();
+        foreach ($contexts as $key => $variable) {
             if (strpos($key, $pattern) !== false) {
+                $variableContext = $context === null ? $variable['context'] : $this->getContext($this->formatKey($key), $context);
+                $value = $this->getValue($key, $variableContext);
+
                 if ($trimSearch === true) {
-                    $key = str_replace($pattern, '', $key);
-                    $key = trim($key, '_');
+                    $key = trim(str_replace($pattern, '', $key), '_');
                 }
                 $values[$key] = $value;
             }
@@ -161,7 +160,7 @@ class DrupSettings {
      * @param $value
      * @param string|null $context
      */
-    public function set(string $key, $value, string $context = null) {
+    public function setValue(string $key, $value, string $context = null) {
         $context = $this->getContext($key, $context);
         $config = ($context === $this->context) ? $this->getConfigValues() : $this->getConfigValuesByContext($context);
         $config->set($this->formatKey($key), $value)->save();
@@ -175,7 +174,7 @@ class DrupSettings {
      *
      * @see \Drupal\drup_settings\Form\DrupSettingsForm
      */
-    public function setConfigContexts(array $contexts) {
+    public function setContexts(array $contexts) {
         foreach ($contexts as $index => $context) {
             $this->configContexts->set($index, (array) $context);
         }
@@ -183,6 +182,32 @@ class DrupSettings {
     }
 
 
+
+
+
+    /**
+     * Liste du contexte de chaque variable
+     *
+     * @return \Drupal\Core\Config\Config
+     */
+    protected function getContexts() {
+        return $this->configContexts->get();
+    }
+
+    /**
+     * Récupère le contexte par défaut d'une variable
+     *
+     * @param string $key
+     *
+     * @return string|null
+     */
+    protected function getDefaultContext(string $key) {
+        if ($data = $this->configContexts->get($key)) {
+            return $data['context'];
+        }
+
+        return null;
+    }
 
     /**
      * Récupère le contexte à appliquer localement
@@ -194,7 +219,7 @@ class DrupSettings {
      */
     protected function getContext(string $key, string $context = null) {
         if ($context === null) {
-            $context = $this->getVariableContext($this->formatKey($key));
+            $context = $this->getDefaultContext($this->formatKey($key));
         }
         if ($context === null) {
             $context = $this->context;
@@ -203,20 +228,6 @@ class DrupSettings {
         return $context;
     }
 
-    /**
-     * Récupère le contexte par défaut d'une variable
-     *
-     * @param string $key
-     *
-     * @return string|null
-     */
-    protected function getVariableContext(string $key) {
-        if ($data = $this->configContexts->get($key)) {
-            return $data['context'];
-        }
-
-        return null;
-    }
 
     /**
      * Formatte la clé d'une variable
@@ -247,12 +258,6 @@ class DrupSettings {
      */
     protected function getConfigValuesByContext(string $context) {
         return $this->languageManager->getLanguageConfigOverride($context, self::getConfigValuesName());
-
-//        if ($config instanceof LanguageConfigOverride) {
-//            return $config;
-//        }
-//
-//        return null;
     }
 
 
@@ -263,12 +268,18 @@ class DrupSettings {
      * @deprecated
      */
     public function setLanguage(string $languageId = null) {
-        $this->setContext($languageId);
+        $this->applyContext($languageId);
     }
     /**
      * @deprecated
      */
     public function setNeutralLang() {
-        $this->setContext(self::$contextNeutral);
+        $this->applyContext(self::$contextNeutral);
+    }
+    /**
+     * @deprecated
+     */
+    public function set(string $key, $value, string $context = null) {
+        $this->setValue($key, $value, $context);
     }
 }
