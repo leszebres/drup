@@ -123,6 +123,8 @@ class DrupMediaVideoExternal extends DrupMedia {
 
         if (isset($this->mediasData[$index]) && ($oEmbedResource = self::fetchResource($this->mediasData[$index]->field_value))) {
             $iframe = self::generateIframe($this->mediasData[$index]->field_value);
+            $thumbnail = self::getThumbnailUrl($oEmbedResource);
+            $name = $this->mediasData[$index]->entity->getName();
 
             $data = [
                 'url' => $this->mediasData[$index]->field_value,
@@ -131,7 +133,8 @@ class DrupMediaVideoExternal extends DrupMedia {
                 'oembed' => $oEmbedResource,
                 'iframe' => $iframe,
                 'iframe_url' => self::extractIframeUrl($iframe),
-                'thumbnail' => self::getThumbnailUrl($oEmbedResource)
+                'thumbnail' => self::generateThumbnail($thumbnail, $name),
+                'thumbnail_url' => $thumbnail
             ];
         }
 
@@ -146,7 +149,7 @@ class DrupMediaVideoExternal extends DrupMedia {
      *
      * @return mixed|string
      */
-    public static function getThumbnailUrl(\Drupal\media\OEmbed\Resource $resource, $increaseSize = true) {
+    public static function getThumbnailUrl(\Drupal\media\OEmbed\Resource $resource, bool $increaseSize = true) {
         $url = null;
 
         if ($uri = $resource->getThumbnailUrl()) {
@@ -169,6 +172,23 @@ class DrupMediaVideoExternal extends DrupMedia {
         }
 
         return $url;
+    }
+
+    /**
+     * @param string $url
+     *
+     * @return \Drupal\Component\Render\MarkupInterface|string
+     */
+    public static function generateThumbnail(string $url, string $alt = null) {
+        $output = '<img src="' . $url . '"';
+
+        if ($alt !== null) {
+            $output .= ' alt="' . $alt . '"';
+        }
+
+        $output .= ' />';
+
+        return Markup::create($output);
     }
 
     /**
