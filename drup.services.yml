@@ -2,3 +2,7 @@ services:
   drup_page_entity:
     class: Drupal\drup\DrupPageEntity
     arguments: []
+
+  drup_pdf_thumbnail:
+    class: Drupal\drup\Media\DrupPdfThumbnail
+    arguments: ['@config.factory', '@file_system', '@transliteration', '@image.toolkit.manager', '@language_manager']
