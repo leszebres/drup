@@ -102,7 +102,7 @@ class DrupMediaImage extends DrupMedia {
                 'alt' => $this->mediasData[$index]->field->get('alt')->getString(),
             ], $attributes);
 
-            return $drupFileImage->renderMedia($style, $attributes);
+            return $drupFileImage->renderImage($style, $attributes);
         }
 
         return false;

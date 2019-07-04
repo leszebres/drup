@@ -92,11 +92,12 @@ class DrupMedia {
     }
 
     /**
+     * Retourne l'uri de la miniature générée du Media
+     *
      * @param int $index
      * @param string $fieldName
      *
      * @return null|string
-     * @todo fieldname dynamique ?
      */
     public function getGeneratedThumbnailUri($index = 0, $fieldName = 'field_thumbnail_uri') {
         if (isset($this->mediasData[$index]) && $this->mediasData[$index]->entity->hasField($fieldName)) {
@@ -105,7 +106,6 @@ class DrupMedia {
 
         return null;
     }
-
 
 
     /**
@@ -136,6 +136,7 @@ class DrupMedia {
 
     /**
      * Standardize media sources into array of media entities
+     *
      * @param $medias
      *
      * @return array

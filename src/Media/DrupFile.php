@@ -46,7 +46,7 @@ class DrupFile {
      *
      * @return bool
      */
-    public function renderMedia($style, $attributes = []) {
+    public function renderImage($style, $attributes = []) {
         if (!$this->isValid()) {
             return false;
         }
@@ -60,7 +60,7 @@ class DrupFile {
 
         // Render as image style
         if (!empty($style)) {
-            if ($imageStyle = $this->getImageStyleEntity($style, true)) {
+            if ($imageStyle = self::getImageStyleEntity($style, true)) {
                 if ($imageStyle instanceof ResponsiveImageStyle) {
                     $rendererOptions += [
                         '#theme' => 'responsive_image',
@@ -75,8 +75,7 @@ class DrupFile {
                 }
             }
             else {
-                \Drupal::messenger()
-                    ->addMessage('Le style d\'image ' . $style . ' n\'existe pas.', 'error');
+                \Drupal::messenger()->addMessage('Le style d\'image ' . $style . ' n\'existe pas.', 'error');
                 return false;
             }
         }
@@ -105,7 +104,7 @@ class DrupFile {
     public function getMediaUrl($style) {
         $url = null;
 
-        if ($style !== null && $this->isValid() && ($imageStyle = $this->getImageStyleEntity($style))) {
+        if ($style !== null && $this->isValid() && ($imageStyle = self::getImageStyleEntity($style))) {
             $url = $imageStyle->buildUrl($this->uri);
         }
         else {
@@ -128,7 +127,7 @@ class DrupFile {
      *
      * @return \Drupal\Core\Entity\EntityInterface|\Drupal\image\Entity\ImageStyle|\Drupal\responsive_image\Entity\ResponsiveImageStyle|null
      */
-    protected function getImageStyleEntity($style, $allowResponsiveImageStyle = false) {
+    public static function getImageStyleEntity($style, $allowResponsiveImageStyle = false) {
         $imageStyle = ImageStyle::load($style);
 
         if ($imageStyle instanceof ImageStyle) {
@@ -140,6 +139,44 @@ class DrupFile {
         }
 
         return null;
+    }
+
+    /**
+     * @param $uri
+     * @param $style
+     * @param array $attributes
+     *
+     * @return bool
+     */
+    public static function renderImageByUri($uri, $style, $attributes = []) {
+        $rendererOptions = [
+            '#uri' => $uri,
+            '#attributes' => []
+        ];
+
+        if ($imageStyle = self::getImageStyleEntity($style, true)) {
+            if ($imageStyle instanceof ResponsiveImageStyle) {
+                $rendererOptions += [
+                    '#theme' => 'responsive_image',
+                    '#responsive_image_style_id' => $style,
+                ];
+            }
+            else {
+                $rendererOptions += [
+                    '#theme' => 'image_style',
+                    '#style_name' => $style,
+                ];
+            }
+        } else {
+            \Drupal::messenger()->addMessage('Le style d\'image ' . $style . ' n\'existe pas.', 'error');
+            return false;
+        }
+
+        if (!empty($attributes)) {
+            $rendererOptions['#attributes'] = array_merge_recursive($rendererOptions['#attributes'], $attributes);
+        }
+
+        return \Drupal::service('renderer')->render($rendererOptions);
     }
 
     /**
@@ -243,9 +280,7 @@ class DrupFile {
         if (empty($options['url'])) {
             $themeHandler = \Drupal::service('theme_handler');
             $defaultTheme = $themeHandler->getDefault();
-            $options['url'] = \Drupal::request()
-                ->getUriForPath('/' . $themeHandler->getTheme($defaultTheme)
-                        ->getPath() . '/images/logo.' . $type);
+            $options['url'] = \Drupal::request()->getUriForPath('/' . $themeHandler->getTheme($defaultTheme)->getPath() . '/images/logo.' . $type);
         }
 
         if ($type === 'png' && !empty($options['url']) && empty($options['width']) && empty($options['height']) && ($size = @getimagesize($options['url']))) {
