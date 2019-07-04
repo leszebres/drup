@@ -38,9 +38,9 @@ class DrupMedia {
     /**
      * Media entity field representing File entity
      *
-     * @var
+     * @var string
      */
-    protected $filesField;
+    protected $filesFieldName;
 
     /**
      * Current language id
@@ -59,7 +59,7 @@ class DrupMedia {
         $this->languageId = \Drupal::languageManager()->getCurrentLanguage()->getId();
 
         if (!empty($medias)) {
-            $this->filesField = $this->formatFieldName($fileField);
+            $this->filesFieldName = $this->formatFieldName($fileField);
             $this->mediasList = $this->formatMedias($medias);
 
             $this->mediasData = $this->getData();
@@ -77,13 +77,57 @@ class DrupMedia {
      * Get the media legend (from media entity field)
      *
      * @param int $index
+     * @param string $fieldName
      *
      * @return \Drupal\Component\Render\MarkupInterface|string|null
      */
-    public function getLegend($index = 0) {
-        if (isset($this->mediasData[$index]) && $this->mediasData[$index]->entity->hasField('field_description')) {
-            if ($legend = $this->mediasData[$index]->entity->get('field_description')->value) {
+    public function getLegend($index = 0, $fieldName = 'field_description') {
+        if (isset($this->mediasData[$index]) && $this->mediasData[$index]->entity->hasField($fieldName)) {
+            if ($legend = $this->mediasData[$index]->entity->get($fieldName)->value) {
                 return Markup::create(nl2br($legend));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param int $index
+     * @param string $fieldName
+     *
+     * @return null|string
+     * @todo fieldname dynamique ?
+     */
+    public function getGeneratedThumbnailUri($index = 0, $fieldName = 'field_thumbnail_uri') {
+        if (isset($this->mediasData[$index]) && $this->mediasData[$index]->entity->hasField($fieldName)) {
+            return $this->mediasData[$index]->entity->get('field_thumbnail_uri')->value;
+        }
+
+        return null;
+    }
+
+
+
+    /**
+     * Récupère l'entité du File principal référencé dans le Media
+     *
+     * @param \Drupal\media\Entity\Media $media
+     * @param $fieldName
+     *
+     * @return \Drupal\Core\Entity\EntityInterface|\Drupal\file\Entity\File|mixed|null
+     * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+     */
+    public static function getReferencedFile(Media $media, $fieldName) {
+        if ($media->hasField($fieldName)) {
+            /** @var FieldItemBase $fileReferenced */
+            $fileReferenced = $media->get($fieldName)->first();
+
+            if (!$fileReferenced->isEmpty() && !empty($fileReferenced->getValue())) {
+                if ($fileReferenced->target_id !== null && ($fileEntity = File::load($fileReferenced->target_id)) && $fileEntity instanceof File) {
+                    return $fileEntity;
+                }
+
+                return $fileReferenced->value;
             }
         }
 
@@ -122,22 +166,16 @@ class DrupMedia {
 
         if (!empty($this->mediasList)) {
             foreach ($this->mediasList as $mediaEntity) {
-                if ($mediaEntity->hasField($this->filesField)) {
-
+                if ($mediaEntity->hasField($this->filesFieldName)) {
                     /** @var FieldItemBase $fileReferenced */
-                    $fileReferenced = $mediaEntity->get($this->filesField)->first();
+                    $fileReferenced = $mediaEntity->get($this->filesFieldName)->first();
 
                     if (!$fileReferenced->isEmpty() && !empty($fileReferenced->getValue())) {
                         $item = [
                             'entity' => $mediaEntity,
-                            'field' => $fileReferenced
+                            'field' => $fileReferenced,
+                            'field_value' => self::getReferencedFile($mediaEntity, $this->filesFieldName)
                         ];
-
-                        if ($fileReferenced->target_id !== null && ($fileEntity = File::load($fileReferenced->target_id)) && $fileEntity instanceof File) {
-                            $item['field_value'] = $fileEntity;
-                        } else {
-                            $item['field_value'] = $fileReferenced->value;
-                        }
 
                         $data[] = (object) $item;
                     }

@@ -133,7 +133,7 @@ class DrupMediaVideoExternal extends DrupMedia {
                 'oembed' => $oEmbedResource,
                 'iframe' => $iframe,
                 'iframe_url' => self::extractIframeUrl($iframe),
-                'thumbnail' => self::generateThumbnail($thumbnail, $name),
+                'thumbnail' => self::gerThumbnaiMarkup($thumbnail, $name),
                 'thumbnail_url' => $thumbnail
             ];
         }
@@ -179,7 +179,7 @@ class DrupMediaVideoExternal extends DrupMedia {
      *
      * @return \Drupal\Component\Render\MarkupInterface|string
      */
-    public static function generateThumbnail(string $url, string $alt = null) {
+    public static function gerThumbnaiMarkup(string $url, string $alt = null) {
         $output = '<img src="' . $url . '"';
 
         if ($alt !== null) {
@@ -194,11 +194,11 @@ class DrupMediaVideoExternal extends DrupMedia {
     /**
      * Encode media public url into OEmbed resource
      *
-     * @param $url
+     * @param string $url
      *
      * @return \Drupal\media\OEmbed\Resource|null
      */
-    public static function fetchResource($url) {
+    public static function fetchResource(string $url) {
         if ($oEmbedUrl = \Drupal::service('media.oembed.url_resolver')->getResourceUrl($url)) {
             if ($resource = \Drupal::service('media.oembed.resource_fetcher')->fetchResource($oEmbedUrl)) {
                 return $resource;

@@ -2,6 +2,7 @@
 
 namespace Drupal\drup\Media;
 
+use Drupal\file\Entity\File;
 use Drupal\media\Entity\Media;
 
 /**
@@ -20,23 +21,6 @@ class DrupMediaDocument extends DrupMedia {
     public function __construct($medias, $fileField = null) {
         $this->type = 'file';
         parent::__construct($medias, $fileField);
-    }
-
-    /**
-     * @param array $attributes
-     *
-     * @return array
-     */
-    public function renderMedias($attributes = []) {
-        $medias = [];
-
-        if (!empty($this->mediasData)) {
-            foreach ($this->mediasData as $index => $media) {
-                $medias[] = $this->renderMedia($index, $attributes);
-            }
-        }
-
-        return $medias;
     }
 
     /**
@@ -67,21 +51,6 @@ class DrupMediaDocument extends DrupMedia {
 
     /**
      * @param int $index
-     * @param array $attributes
-     *
-     * @return bool
-     */
-    protected function renderMedia($index = 0, $attributes = []) {
-        if (isset($this->mediasData[$index])) {
-            // todo
-        }
-
-        return false;
-    }
-
-
-    /**
-     * @param int $index
      *
      * @return array
      */
@@ -91,7 +60,7 @@ class DrupMediaDocument extends DrupMedia {
         if ($url = $this->getMediaUrl($index)) {
             $data = [
                 'url' => $url,
-                'size' => format_size($this->mediasData[$index]->field_value->getSize())->__toString(),
+                'size' => (string) format_size($this->mediasData[$index]->field_value->getSize()),
                 'mime' => explode('/', $this->mediasData[$index]->field_value->getMimeType())[1],
                 'name' => $this->mediasData[$index]->field_value->getFilename(),
                 'title' => $this->mediasData[$index]->entity->getName(),
@@ -112,5 +81,24 @@ class DrupMediaDocument extends DrupMedia {
         }
 
         return false;
+    }
+
+    /**
+     * Extrait la 1ère page du pdf et créé une uri
+     *
+     * @param \Drupal\media\Entity\Media $media
+     * @param string $fieldName
+     *
+     * @return string|null
+     */
+    public static function generateThumbnailUri(Media $media, $fieldName = 'field_media_file') {
+        if (($file = DrupMedia::getReferencedFile($media, $fieldName)) && $file instanceof File) {
+            /** @var \Drupal\drup\Media\DrupPdfThumbnail $service */
+            $service = \Drupal::service('drup_pdf_thumbnail');
+
+            return $service->getPDFPreview($file);
+        }
+
+        return null;
     }
 }
