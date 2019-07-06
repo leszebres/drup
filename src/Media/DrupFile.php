@@ -154,26 +154,35 @@ class DrupFile {
             '#attributes' => []
         ];
 
-        if ($imageStyle = self::getImageStyleEntity($style, true)) {
-            if ($imageStyle instanceof ResponsiveImageStyle) {
-                $rendererOptions += [
-                    '#theme' => 'responsive_image',
-                    '#responsive_image_style_id' => $style,
-                ];
+        // Render as image style
+        if (!empty($style)) {
+            if ($imageStyle = self::getImageStyleEntity($style, true)) {
+                if ($imageStyle instanceof ResponsiveImageStyle) {
+                    $rendererOptions += [
+                        '#theme' => 'responsive_image',
+                        '#responsive_image_style_id' => $style,
+                    ];
+                }
+                else {
+                    $rendererOptions += [
+                        '#theme' => 'image_style',
+                        '#style_name' => $style,
+                    ];
+                }
             }
             else {
-                $rendererOptions += [
-                    '#theme' => 'image_style',
-                    '#style_name' => $style,
-                ];
+                \Drupal::messenger()
+                    ->addMessage('Le style d\'image ' . $style . ' n\'existe pas.', 'error');
+                return false;
+            }
+
+            if (!empty($attributes)) {
+                $rendererOptions['#attributes'] = array_merge_recursive($rendererOptions['#attributes'], $attributes);
             }
         } else {
-            \Drupal::messenger()->addMessage('Le style d\'image ' . $style . ' n\'existe pas.', 'error');
-            return false;
-        }
-
-        if (!empty($attributes)) {
-            $rendererOptions['#attributes'] = array_merge_recursive($rendererOptions['#attributes'], $attributes);
+            $rendererOptions += [
+                '#theme' => 'image',
+            ];
         }
 
         return \Drupal::service('renderer')->render($rendererOptions);

@@ -4,7 +4,6 @@ namespace Drupal\drup\Media;
 
 use Drupal\Core\Render\Markup;
 use Drupal\media\Entity\Media;
-use Drupal\media\IFrameMarkup;
 
 /**
  * Class DrupMediaVideoExternal
@@ -12,6 +11,11 @@ use Drupal\media\IFrameMarkup;
  * @package Drupal\drup\Media
  */
 class DrupMediaVideoExternal extends DrupMedia {
+
+    /**
+     * @var string
+     */
+    public static $fileField = 'field_media_oembed_video';
 
     /**
      * DrupMediaVideoExternal constructor.
@@ -23,7 +27,7 @@ class DrupMediaVideoExternal extends DrupMedia {
         $this->type = 'video_external';
 
         if ($fileField === null) {
-            $fileField = 'field_media_oembed_video';
+            $fileField = self::$fileField;
         }
 
         parent::__construct($medias, $fileField);
@@ -60,13 +64,15 @@ class DrupMediaVideoExternal extends DrupMedia {
     }
 
     /**
+     * @param null $thumbnailStyle
+     *
      * @return array
      */
-    public function getMediasData() {
+    public function getMediasData($thumbnailStyle = null) {
         $data = [];
 
         foreach ($this->mediasData as $index => $media) {
-            $data[] = $this->getMediaData($index);
+            $data[] = $this->getMediaData($index, $thumbnailStyle);
         }
 
         return $data;
@@ -82,10 +88,8 @@ class DrupMediaVideoExternal extends DrupMedia {
      * @return bool
      */
     protected function renderMedia($index = 0, $attributes = []) {
-        if (isset($this->mediasData[$index])) {
-            // todo theme custom avec title / desc / iframe / image
-            return self::generateIframe($this->mediasData[$index]->field_value);
-        }
+//        if (isset($this->mediasData[$index])) {
+//        }
 
         return false;
     }
@@ -98,43 +102,34 @@ class DrupMediaVideoExternal extends DrupMedia {
      * @return bool|\Drupal\Core\GeneratedUrl|string|null
      */
     protected function getMediaUrl($index = 0) {
-        if (isset($this->mediasData[$index])) {
-            if ($iframe = self::generateIframe($this->mediasData[$index]->field_value)) {
-                preg_match('/src="([^"]+)"/', $iframe, $iframeSrc);
-
-                if (isset($iframeSrc[1]) && is_string($iframeSrc[1])) {
-                    return $iframeSrc[1];
-                }
-            }
-        }
+//        if (isset($this->mediasData[$index])) {
+//        }
 
         return false;
     }
 
     /**
-     * Info about OEmbed fetched resource
-     *
      * @param int $index
+     * @param null $thumbnailStyle
      *
      * @return array
      */
-    protected function getMediaData($index = 0) {
+    protected function getMediaData($index = 0, $thumbnailStyle = null) {
         $data = [];
 
-        if (isset($this->mediasData[$index]) && ($oEmbedResource = self::fetchResource($this->mediasData[$index]->field_value))) {
-            $iframe = self::generateIframe($this->mediasData[$index]->field_value);
-            $thumbnail = self::getThumbnailUrl($oEmbedResource);
+        if (isset($this->mediasData[$index])) {
+            $iframe = $this->mediasData[$index]->entity->get('field_video_external_iframe')->value;
+            $thumbnailUri = $this->mediasData[$index]->entity->get('field_thumbnail_uri')->value;
             $name = $this->mediasData[$index]->entity->getName();
 
             $data = [
                 'url' => $this->mediasData[$index]->field_value,
                 'name' => $this->mediasData[$index]->entity->getName(),
                 'legend' => $this->getLegend($index),
-                'oembed' => $oEmbedResource,
                 'iframe' => $iframe,
                 'iframe_url' => self::extractIframeUrl($iframe),
-                'thumbnail' => self::gerThumbnaiMarkup($thumbnail, $name),
-                'thumbnail_url' => $thumbnail
+                'thumbnail' => DrupFile::renderImageByUri($thumbnailUri, $thumbnailStyle, ['alt' => $name]),
+                'thumbnail_url' => file_create_url($thumbnailUri)
             ];
         }
 
@@ -142,107 +137,17 @@ class DrupMediaVideoExternal extends DrupMedia {
     }
 
     /**
-     * Get thumbnail url from OEmbed resource
-     *
-     * @param \Drupal\media\OEmbed\Resource $resource
-     * @param bool $increaseSize
-     *
-     * @return mixed|string
-     */
-    public static function getThumbnailUrl(\Drupal\media\OEmbed\Resource $resource, bool $increaseSize = true) {
-        $url = null;
-
-        if ($uri = $resource->getThumbnailUrl()) {
-            $url = $uri->getUri();
-
-            // Replace url with bigger format
-            if ($increaseSize === true) {
-                switch (strtolower($resource->getProvider()->getName())) {
-                    case 'youtube':
-                        $url = str_replace('hqdefault', 'maxresdefault',  $url);
-                        break;
-
-                    case 'vimeo':
-                        if (($width = $resource->getThumbnailWidth()) && ($height = $resource->getThumbnailHeight())) {
-                            $url = str_replace($width . 'x' . $height, '800x450', $url);
-                        }
-                        break;
-                }
-            }
-        }
-
-        return $url;
-    }
-
-    /**
-     * @param string $url
-     *
-     * @return \Drupal\Component\Render\MarkupInterface|string
-     */
-    public static function gerThumbnaiMarkup(string $url, string $alt = null) {
-        $output = '<img src="' . $url . '"';
-
-        if ($alt !== null) {
-            $output .= ' alt="' . $alt . '"';
-        }
-
-        $output .= ' />';
-
-        return Markup::create($output);
-    }
-
-    /**
-     * Encode media public url into OEmbed resource
-     *
-     * @param string $url
-     *
-     * @return \Drupal\media\OEmbed\Resource|null
-     */
-    public static function fetchResource(string $url) {
-        if ($oEmbedUrl = \Drupal::service('media.oembed.url_resolver')->getResourceUrl($url)) {
-            if ($resource = \Drupal::service('media.oembed.resource_fetcher')->fetchResource($oEmbedUrl)) {
-                return $resource;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Generate an iframe with a public media url
-     *
-     * @param $url
-     * @param bool $asMarkup
-     *
-     * @return \Drupal\Component\Render\MarkupInterface|string|null
-     */
-    public static function generateIframe($url, $asMarkup = true) {
-        if ($resource = self::fetchResource($url)) {
-            $iframe = $resource->getHtml();
-
-            // unset width/height attributes
-            $iframe = preg_replace('/(width|height)="\d*"\s/', '', $iframe);
-
-            return $asMarkup ? IFrameMarkup::create($iframe) : $iframe;
-        }
-
-        return null;
-    }
-
-    /**
      * Extrait la source d'une iframe
      *
-     * @param $string
+     * @param string|Markup $string
      *
-     * @return mixed|null
+     * @return string|null
      */
     public static function extractIframeUrl($string) {
-        if ($string instanceof Markup) {
-            $string = $string->__toString();
-        }
-
-        preg_match('/src="([^"]+)"/', $string, $match);
+        preg_match('/src="([^"]+)"/', (string) $string, $match);
 
         return $match[1] ?? null;
     }
+
+
 }
