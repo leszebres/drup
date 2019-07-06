@@ -176,13 +176,13 @@ class DrupField {
     }
 
     /**
-     * @param $input
-     * @param $field
-     * @param bool $multiple
-     * @param null $outputKey
+     * @param array|object $input
+     * @param string $field
      * @param null $fieldKey
+     * @param null $outputKey
+     * @param bool $multiple
      */
-    public function add(&$input, $field, $outputKey = null, $fieldKey = null, $multiple = false) {
+    public function add(&$input, string $field, $fieldKey = null, $outputKey = null, $multiple = false) {
         if (empty($outputKey)) {
             $outputKey = $field;
         }

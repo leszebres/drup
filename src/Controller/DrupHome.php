@@ -2,7 +2,6 @@
 
 namespace Drupal\drup\Controller;
 
-
 use Drupal\Core\Controller\ControllerBase;
 
 /**
