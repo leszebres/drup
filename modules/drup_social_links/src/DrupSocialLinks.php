@@ -3,7 +3,6 @@
 namespace Drupal\drup_social_links;
 
 use Drupal\Core\Url;
-use Drupal\drup\DrupPageEntity;
 use Drupal\language\Config\LanguageConfigOverride;
 
 /**

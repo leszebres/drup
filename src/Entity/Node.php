@@ -2,8 +2,6 @@
 
 namespace Drupal\drup\Entity;
 
-use Drupal\drup\DrupPageEntity;
-
 /**
  * Class Node
  *

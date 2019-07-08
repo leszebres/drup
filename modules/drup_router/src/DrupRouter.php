@@ -2,8 +2,6 @@
 
 namespace Drupal\drup_router;
 
-use Drupal\drup\DrupPageEntity;
-
 /**
  * Class DrupRouter
  *

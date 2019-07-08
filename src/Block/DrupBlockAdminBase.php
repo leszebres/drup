@@ -6,7 +6,6 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\drup\DrupPageEntity;
 use Drupal\drup\Helper\DrupRequest;
 
 /**
