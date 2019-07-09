@@ -41,6 +41,19 @@ class DrupFile {
     }
 
     /**
+     * @param string $fid
+     *
+     * @return \Drupal\drup\Media\DrupFile
+     */
+    public static function createFromFid(string $fid) {
+        if (($file = File::load($fid)) && $file instanceof File) {
+            return new static($file);
+        }
+
+        return null;
+    }
+
+    /**
      * @param $style
      * @param array $attributes
      *
