@@ -2,7 +2,7 @@
 
 namespace Drupal\drup;
 
-use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\drup\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Menu\MenuLinkInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
