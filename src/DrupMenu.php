@@ -26,10 +26,10 @@ class DrupMenu {
      */
     public static function translate(&$items, $languageId) {
         foreach ($items as $index => &$item) {
-            if (($item['original_link'] instanceof \Drupal\menu_link_content\Plugin\Menu\MenuLinkContent) && ($entity = DrupUrl::loadEntity($item['url']))) {
-                if (!\Drupal\drup\Entity\ContentEntityBase::isAllowed($entity, $languageId)) {
+            if (($item['original_link'] instanceof MenuLinkContent) && ($entity = DrupUrl::loadEntity($item['url']))) {
+                if (!ContentEntityBase::isAllowed($entity, $languageId)) {
                     unset($items[$index]);
-                } else if (($entity = self::loadMenuItemEntityFromMenuLink($item['original_link'])) && !self::isMenuItemTranslated($entity, $languageId)) {
+                } elseif (($entity = self::loadMenuItemEntityFromMenuLink($item['original_link'])) && !self::isMenuItemTranslated($entity, $languageId)) {
                     unset($items[$index]);
                 }
             }
@@ -51,7 +51,7 @@ class DrupMenu {
      */
     public static function isMenuItemTranslated($entity, $language) {
         if ($entity !== null) {
-            return array_key_exists($language, $entity->getTranslationLanguages()) ? true : false;
+            return \array_key_exists($language, $entity->getTranslationLanguages());
         }
 
         return false;
@@ -92,6 +92,33 @@ class DrupMenu {
     }
 
     /**
+     * Retourne un MenuLinkTreeElement depuis une entité
+     *
+     * @param        $entity
+     * @param string $menuName
+     *
+     * @return \Drupal\Core\Menu\MenuLinkTreeElement|null
+     */
+    public static function getMenuItemFromEntity(EntityInterface $entity, $menuName = 'main') {
+        $menuItem = null;
+        $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
+        $menuParameters = new MenuTreeParameters();
+
+        $links = $menuLinkManager->loadLinksByRoute($entity->toUrl()->getRouteName(), $entity->toUrl()->getRouteParameters(), $menuName);
+        $rootMenuItem = array_pop($links);
+        $menuParameters->setRoot($rootMenuItem->getPluginId());
+        $menuParameters->setMaxDepth(1);
+
+        $menuItems = \Drupal::menuTree()->load($menuName, $menuParameters);
+
+        if (!empty($menuItems)) {
+            $menuItem = current($menuItems);
+        }
+
+        return $menuItem;
+    }
+
+    /**
      * Vérifie une entité a pour parent une autre entité
      *
      * @param $parentEntityId
@@ -101,7 +128,7 @@ class DrupMenu {
      * @return bool
      */
     public static function isChildOf($parentEntityId, EntityInterface $currentEntity = null, $menuName = 'main') {
-        $parents = self::getParents($currentEntity, null, $menuName, true);
+        $parents = self::getParents($currentEntity, null, $menuName);
 
         if (!empty($parents)) {
             foreach ($parents as $index => $parent) {
@@ -145,6 +172,7 @@ class DrupMenu {
             $parameters = $menuTreeService->getCurrentRouteMenuTreeParameters($menuName);
             //$activeTrail = array_keys($parameters->activeTrail);
             $activeTrail = $parameters->activeTrail;
+
         } else {
             $parameters = new MenuTreeParameters();
             /** @var \Drupal\Core\Menu\MenuLinkManager $menuLinkManager */
@@ -175,7 +203,7 @@ class DrupMenu {
             array_pop($navItems);
 
             if ($maxDepth !== null) {
-                $navItems = array_slice($navItems, count($navItems) - $maxDepth, $maxDepth);
+                $navItems = \array_slice($navItems, count($navItems) - $maxDepth, $maxDepth);
             }
 
             if ($loadEntities === true && !empty($menuItemsInActiveTrail)) {
@@ -190,7 +218,6 @@ class DrupMenu {
 
         return $navItems;
     }
-
 
     /**
      * Retourne les liens enfants
@@ -213,6 +240,7 @@ class DrupMenu {
             // But actually we need its parent.
             // Except for <front>. Which has no parent.
             $parentLinkId = $activeTrail[0];
+
         } else {
             $parameters = new MenuTreeParameters();
             $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
@@ -222,8 +250,7 @@ class DrupMenu {
             $parentLinkId = $rootMenuItem->getPluginId();
         }
 
-        // Having the parent now we set it as starting point to build our custom
-        // tree.
+        // Having the parent now we set it as starting point to build our custom tree.
         $parameters->setRoot($parentLinkId);
         $parameters->setMaxDepth(1);
         $parameters->onlyEnabledLinks();
@@ -276,6 +303,7 @@ class DrupMenu {
             // But actually we need its parent.
             // Except for <front>. Which has no parent.
             $parentLinkId = $activeTrail[1] ?? $activeTrail[0];
+
         } else {
             $parameters = new MenuTreeParameters();
             $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
@@ -285,8 +313,7 @@ class DrupMenu {
             $parentLinkId = array_pop($activeTrail);
         }
 
-        // Having the parent now we set it as starting point to build our custom
-        // tree.
+        // Having the parent now we set it as starting point to build our custom tree.
         $parameters->setRoot($parentLinkId);
         $parameters->setMaxDepth(1);
         $parameters->excludeRoot();
@@ -324,7 +351,7 @@ class DrupMenu {
      * @return array
      */
     protected static function extractActiveTrail($treeItems, &$itemsInActiveTrail) {
-        if (is_array($treeItems)) {
+        if (\is_array($treeItems)) {
             foreach ($treeItems as $index => $treeItem) {
                 if ($treeItem['in_active_trail'] === true) {
                     $itemsInActiveTrail[] = $treeItem;
