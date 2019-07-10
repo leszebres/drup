@@ -284,6 +284,19 @@ class DrupFile {
     }
 
     /**
+     * @param string $relativePath
+     * @param null $theme
+     *
+     * @return string
+     */
+    public static function getThemeFileUri(string $relativePath, $theme = null) {
+        $themeHandler = \Drupal::service('theme_handler');
+        $theme = $theme ?? $themeHandler->getDefault();
+
+        return \Drupal::request()->getUriForPath('/' . $themeHandler->getTheme($theme)->getPath() . $relativePath);
+    }
+
+    /**
      * Retourne des informations sur le logo du site
      *
      * @param string $type ='svg' Type de fichier (svg ou png)
@@ -300,9 +313,7 @@ class DrupFile {
         ], $options);
 
         if (empty($options['url'])) {
-            $themeHandler = \Drupal::service('theme_handler');
-            $defaultTheme = $themeHandler->getDefault();
-            $options['url'] = \Drupal::request()->getUriForPath('/' . $themeHandler->getTheme($defaultTheme)->getPath() . '/images/logo.' . $type);
+            $options['url'] = self::getThemeFileUri('/images/logo.' . $type);
         }
 
         if ($type === 'png' && !empty($options['url']) && empty($options['width']) && empty($options['height']) && ($size = @getimagesize($options['url']))) {
