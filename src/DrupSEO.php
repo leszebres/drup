@@ -431,4 +431,41 @@ abstract class DrupSEO {
             }
         }
     }
+
+    /**
+     * @test
+     * @param $variables
+     */
+    public static function pagerViewsHandler(&$variables) {
+        if (isset($variables['view']->pager->current_page)) {
+            $links = [];
+            $queryString = \Drupal::request()->getQueryString();
+            $currentPath = Url::fromRoute('<current>')->toString();
+            $currentPage = (int) $variables['view']->pager->current_page;
+            $totalPages = (int) $variables['view']->pager->total_items;
+
+            // Prev
+            if ($currentPage > 0) {
+                $links['prev'] = $currentPage - 1;
+            }
+
+            // Next
+            if ($currentPage < $totalPages) {
+                $links['next'] = $currentPage + 1;
+            }
+
+            // Add
+            if (!empty($links)) {
+                foreach ($links as $link => $page) {
+                    $variables['pager']['#attached']['html_head_link'][] = [
+                        [
+                            'rel' => $link,
+                            'href' => $currentPath . DrupUrl::replaceArgument('page', $page, $queryString)
+                        ],
+                        true
+                    ];
+                }
+            }
+        }
+    }
 }
