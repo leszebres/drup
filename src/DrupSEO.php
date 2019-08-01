@@ -306,11 +306,8 @@ abstract class DrupSEO {
 
                 } elseif ($name === 'search:query') {
                     $replacements[$original] = Url::fromUri('internal:/search', [
-                        'query' => [
-                            'q' => 'keys'
-                        ],
                         'absolute' => true
-                    ])->toString();
+                    ])->toString() . '?q={keys}';
 
                 } elseif ($name === 'search:query-input') {
                     $replacements[$original] = 'required name=keys';
