@@ -4,7 +4,7 @@ drup_report.drup_report_form:
     _form: '\Drupal\drup_report\Form\DrupReportForm'
     _title: 'Drup Report Configuration'
   requirements:
-    _permission: 'access administration pages'
+    _permission: 'administer drupreport'
   options:
     _admin_route: TRUE
 

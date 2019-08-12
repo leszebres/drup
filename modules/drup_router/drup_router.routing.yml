@@ -4,6 +4,6 @@ drup_router.admin_form:
     _form: '\Drupal\drup_router\Form\DrupRouterForm'
     _title: 'Gestion des Routes'
   requirements:
-    _permission: 'access administration pages'
+    _permission: 'administer druprouter'
   options:
     _admin_route: TRUE

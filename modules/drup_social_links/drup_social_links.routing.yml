@@ -4,6 +4,6 @@ drup_social_links.form_links:
     _form: '\Drupal\drup_social_links\Form\DrupSocialLinksForm'
     _title: 'Gestion des réseaux sociaux'
   requirements:
-    _permission: 'access administration pages'
+    _permission: 'administer social links'
   options:
     _admin_route: TRUE
