@@ -116,25 +116,4 @@ class DrupLink extends FormElement {
         return false;
     }
 
-    /**
-     * Check if the input is internal
-     *
-     * @param string $input
-     *
-     * @return bool
-     */
-    public static function isInternal(string $input): bool {
-        return self::getTargetId($input) !== false;
-    }
-
-    /**
-     * Check if the input is external
-     *
-     * @param string $input
-     *
-     * @return bool
-     */
-    public static function isExternal(string $input): bool {
-        return !self::isInternal($input);
-    }
 }
