@@ -250,31 +250,33 @@ class DrupMenu {
             $parentLinkId = $rootMenuItem->getPluginId();
         }
 
-        // Having the parent now we set it as starting point to build our custom tree.
-        $parameters->setRoot($parentLinkId);
-        $parameters->setMaxDepth(1);
-        $parameters->onlyEnabledLinks();
-        $parameters->excludeRoot();
-        $menuTree = $menuTreeService->load($menuName, $parameters);
+        if (!empty($parentLinkId)) {
+            // Having the parent now we set it as starting point to build our custom tree.
+            $parameters->setRoot($parentLinkId);
+            $parameters->setMaxDepth(1);
+            $parameters->onlyEnabledLinks();
+            $parameters->excludeRoot();
+            $menuTree = $menuTreeService->load($menuName, $parameters);
 
-        // Optional: Native sort and access checks.
-        $manipulators = [
-            //['callable' => 'menu.default_tree_manipulators:checkNodeAccess'],
-            ['callable' => 'menu.default_tree_manipulators:checkAccess'],
-            ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
-        ];
+            // Optional: Native sort and access checks.
+            $manipulators = [
+                //['callable' => 'menu.default_tree_manipulators:checkNodeAccess'],
+                ['callable' => 'menu.default_tree_manipulators:checkAccess'],
+                ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
+            ];
 
-        $tree = $menuTreeService->transform($menuTree, $manipulators);
-        $menuItems = $menuTreeService->build($tree);
-        $menuItems['#cache']['max-age'] = 0;
+            $tree = $menuTreeService->transform($menuTree, $manipulators);
+            $menuItems = $menuTreeService->build($tree);
+            $menuItems['#cache']['max-age'] = 0;
 
-        if (!empty($menuItems['#items'])) {
-            foreach ($menuItems['#items'] as $index => $item) {
-                $navItems[$index] = $item;
+            if (!empty($menuItems['#items'])) {
+                foreach ($menuItems['#items'] as $index => $item) {
+                    $navItems[$index] = $item;
 
-                if ($loadEntities && ($childEntity = DrupUrl::loadEntity($item['url']))) {
-                    /** @var ContentEntityBase $entity */
-                    $navItems[$index]['entity'] = $childEntity;
+                    if ($loadEntities && ($childEntity = DrupUrl::loadEntity($item['url']))) {
+                        /** @var ContentEntityBase $entity */
+                        $navItems[$index]['entity'] = $childEntity;
+                    }
                 }
             }
         }
