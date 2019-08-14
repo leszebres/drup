@@ -23,7 +23,7 @@ abstract class DrupSEO {
 
     /**
      * Nom du groupe contenant les tokens SEO
-     * 
+     *
      * @var string
      */
     public static $tokenType = 'seo';
@@ -271,7 +271,7 @@ abstract class DrupSEO {
                     $replacements[$original] = implode(',', $items);
 
                 } elseif ($name === 'contact:company' && ($company = $drupSettings->getValue('contact_infos_company'))) {
-                       $replacements[$original] = $company;
+                    $replacements[$original] = $company;
 
                 } elseif ($name === 'contact:phone:international' && ($phone = $drupSettings->getValue('contact_infos_phone_number'))) {
                     $regionCode = $drupSettings->getValue('contact_infos_country') === 'FR' ? '+33' : null;
@@ -293,16 +293,16 @@ abstract class DrupSEO {
                     $replacements[$original] = implode(',', $items);
 
                 } elseif ($name === 'contact:address' && ($address = $drupSettings->getValue('contact_infos_address'))) {
-                     $replacements[$original] = str_replace("\r", ', ', $address);
+                    $replacements[$original] = str_replace("\r", ', ', $address);
 
                 } elseif ($name === 'contact:zipcode' && ($zipcode = $drupSettings->getValue('contact_infos_zipcode'))) {
-                     $replacements[$original] = $zipcode;
+                    $replacements[$original] = $zipcode;
 
                 } elseif ($name === 'contact:city' && ($city = $drupSettings->getValue('contact_infos_city'))) {
-                     $replacements[$original] = $city;
+                    $replacements[$original] = $city;
 
                 } elseif ($name === 'contact:country' && ($country = $drupSettings->getValue('contact_infos_country'))) {
-                     $replacements[$original] = $country;
+                    $replacements[$original] = $country;
 
                 } elseif ($name === 'search:query') {
                     $replacements[$original] = Url::fromUri('internal:/search', [
@@ -358,6 +358,12 @@ abstract class DrupSEO {
                 if (isset($attachment[1])) {
                     if ($attachment[1] === 'title') {
                         self::addSiteTitle($attachments['#attached']['html_head'][$index][0]['#attributes']['content']);
+
+                    } elseif (\strpos($attachment[1], 'description') !== false) {
+                        // Page number
+                        if ($page = pager_find_page()) {
+                            $attachments['#attached']['html_head'][$index][0]['#attributes']['content'] .= ' - ' . t('Page') . ' ' . $page;
+                        }
 
                     } elseif ($attachment[1] === 'canonical_url') {
                         $queryString = \Drupal::request()->getQueryString();
@@ -465,4 +471,5 @@ abstract class DrupSEO {
             }
         }
     }
+
 }
