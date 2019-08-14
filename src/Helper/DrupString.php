@@ -102,6 +102,28 @@ abstract class DrupString {
     }
 
     /**
+     * Enlève les attributs dans une string
+     *
+     * @param string $string
+     * @param array  $attributes
+     *
+     * @return string|null
+     */
+    public static function removeAttributes(string $string, array $attributes) {
+        $regex = null;
+
+        foreach ($attributes as $attribute) {
+            if ($regex !== null) {
+                $regex .= '|';
+            }
+
+            $regex .= '\s' . $attribute . '="\w"*';
+        }
+
+        return preg_replace('/' . $regex . '/m', '', $string);
+    }
+
+    /**
      * Extrait la/les email(s) dans une chaîne de caractère
      *
      * @param string $string
