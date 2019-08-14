@@ -54,12 +54,12 @@ class DrupFile {
     }
 
     /**
-     * @param $style
-     * @param array $attributes
+     * @param string $style
+     * @param array  $attributes
      *
-     * @return bool
+     * @return bool|array
      */
-    public function renderImage($style, $attributes = []) {
+    public function renderImage(string $style, array $attributes = []) {
         if (!$this->isValid()) {
             return false;
         }
@@ -77,17 +77,17 @@ class DrupFile {
                 if ($imageStyle instanceof ResponsiveImageStyle) {
                     $rendererOptions += [
                         '#theme' => 'responsive_image',
-                        '#responsive_image_style_id' => $style,
+                        '#responsive_image_style_id' => $style
                     ];
-                }
-                else {
+
+                } else {
                     $rendererOptions += [
                         '#theme' => 'image_style',
-                        '#style_name' => $style,
+                        '#style_name' => $style
                     ];
                 }
-            }
-            else {
+
+            } else {
                 \Drupal::messenger()->addMessage('Le style d\'image ' . $style . ' n\'existe pas.', 'error');
                 return false;
             }
@@ -95,7 +95,7 @@ class DrupFile {
         // Render original image
         else {
             $rendererOptions += [
-                '#theme' => 'image',
+                '#theme' => 'image'
             ];
         }
 
@@ -119,8 +119,7 @@ class DrupFile {
 
         if ($style !== null && $this->isValid() && ($imageStyle = self::getImageStyleEntity($style))) {
             $url = $imageStyle->buildUrl($this->uri);
-        }
-        else {
+        } else {
             $url = file_create_url($this->uri);
         }
 
@@ -130,7 +129,7 @@ class DrupFile {
     /**
      * @return bool
      */
-    public function isValid() {
+    public function isValid(): bool {
         return $this->image->isValid();
     }
 
@@ -138,16 +137,16 @@ class DrupFile {
      * @param $style
      * @param bool $allowResponsiveImageStyle
      *
-     * @return \Drupal\Core\Entity\EntityInterface|\Drupal\image\Entity\ImageStyle|\Drupal\responsive_image\Entity\ResponsiveImageStyle|null
+     * @return \Drupal\image\Entity\ImageStyle|\Drupal\responsive_image\Entity\ResponsiveImageStyle|null
      */
-    public static function getImageStyleEntity($style, $allowResponsiveImageStyle = false) {
+    public static function getImageStyleEntity(string $style, bool $allowResponsiveImageStyle = false) {
         $imageStyle = ImageStyle::load($style);
 
         if ($imageStyle instanceof ImageStyle) {
             return $imageStyle;
         }
 
-        if (($allowResponsiveImageStyle === true) && ($responsiveImageStyle = ResponsiveImageStyle::load($style)) && $responsiveImageStyle instanceof ResponsiveImageStyle) {
+        if ($allowResponsiveImageStyle && ($responsiveImageStyle = ResponsiveImageStyle::load($style)) && $responsiveImageStyle instanceof ResponsiveImageStyle) {
             return $responsiveImageStyle;
         }
 
@@ -155,6 +154,8 @@ class DrupFile {
     }
 
     /**
+     * todo refactor + rename "renderImageFromUri"
+     *
      * @param $uri
      * @param $style
      * @param array $attributes
@@ -173,29 +174,29 @@ class DrupFile {
                 if ($imageStyle instanceof ResponsiveImageStyle) {
                     $rendererOptions += [
                         '#theme' => 'responsive_image',
-                        '#responsive_image_style_id' => $style,
+                        '#responsive_image_style_id' => $style
                     ];
-                }
-                else {
+
+                } else {
                     $rendererOptions += [
                         '#theme' => 'image_style',
-                        '#style_name' => $style,
+                        '#style_name' => $style
                     ];
                 }
-            }
-            else {
-                \Drupal::messenger()
-                    ->addMessage('Le style d\'image ' . $style . ' n\'existe pas.', 'error');
+
+            } else {
+                \Drupal::messenger()->addMessage('Le style d\'image ' . $style . ' n\'existe pas.', 'error');
                 return false;
             }
 
-            if (!empty($attributes)) {
-                $rendererOptions['#attributes'] = array_merge_recursive($rendererOptions['#attributes'], $attributes);
-            }
         } else {
             $rendererOptions += [
-                '#theme' => 'image',
+                '#theme' => 'image'
             ];
+        }
+
+        if (!empty($attributes)) {
+            $rendererOptions['#attributes'] = array_merge_recursive($rendererOptions['#attributes'], $attributes);
         }
 
         return \Drupal::service('renderer')->render($rendererOptions);
@@ -239,13 +240,11 @@ class DrupFile {
      * @return mixed
      */
     public static function setPermanent($fid) {
-        if (is_array($fid)) {
+        if (\is_array($fid)) {
             $fid = current($fid);
         }
 
-        $file = File::load($fid);
-
-        if ($file instanceof File) {
+        if (($file = File::load($fid)) && $file instanceof File) {
             $file->setPermanent();
             $file->save();
 
@@ -266,13 +265,11 @@ class DrupFile {
     public static function getUrl($fid, $absolute = true) {
         $url = null;
 
-        if (is_array($fid)) {
+        if (\is_array($fid)) {
             $fid = current($fid);
         }
 
-        $file = File::load($fid);
-
-        if ($file instanceof File) {
+        if (($file = File::load($fid)) && $file instanceof File) {
             $url = $file->getFileUri();
 
             if ($absolute) {
@@ -285,11 +282,11 @@ class DrupFile {
 
     /**
      * @param string $relativePath
-     * @param null $theme
+     * @param string $theme
      *
      * @return string
      */
-    public static function getThemeFileUri(string $relativePath, $theme = null) {
+    public static function getThemeFileUri(string $relativePath, string $theme = null): string {
         $themeHandler = \Drupal::service('theme_handler');
         $theme = $theme ?? $themeHandler->getDefault();
 
@@ -299,12 +296,12 @@ class DrupFile {
     /**
      * Retourne des informations sur le logo du site
      *
-     * @param string $type ='svg' Type de fichier (svg ou png)
+     * @param string $type='svg' Type de fichier (svg ou png)
      * @param array $options Surcharge des éléments retournés
      *
      * @return object
      */
-    public static function getLogo($type = 'svg', $options = []) {
+    public static function getLogo(string $type = 'svg', array $options = []): object {
         $options = array_merge([
             'url' => null,
             'width' => null,
@@ -322,6 +319,7 @@ class DrupFile {
             $options['mimetype'] = $size['mime'];
         }
 
-        return (object) $options;
+        return $options;
     }
+
 }
