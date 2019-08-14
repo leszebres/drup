@@ -55,7 +55,7 @@ class DrupMedia {
      * @param int|int[]|Media|Media[] $medias
      * @param null $fileField
      */
-    public function __construct($medias, $fileField = null) {
+    public function __construct($medias, string $fileField = null) {
         $this->languageId = \Drupal::languageManager()->getCurrentLanguage()->getId();
 
         if (!empty($medias)) {
@@ -69,7 +69,7 @@ class DrupMedia {
     /**
      * @return bool
      */
-    public function isEmpty() {
+    public function isEmpty(): bool {
         return empty($this->mediasData);
     }
 
@@ -81,7 +81,7 @@ class DrupMedia {
      *
      * @return \Drupal\Component\Render\MarkupInterface|string|null
      */
-    public function getLegend($index = 0, $fieldName = 'field_description') {
+    public function getLegend(int $index = 0, string $fieldName = 'field_description') {
         if (isset($this->mediasData[$index]) && $this->mediasData[$index]->entity->hasField($fieldName)) {
             if ($legend = $this->mediasData[$index]->entity->get($fieldName)->value) {
                 return Markup::create(nl2br($legend));
@@ -99,9 +99,9 @@ class DrupMedia {
      *
      * @return null|string
      */
-    public function getGeneratedThumbnailUri($index = 0, $fieldName = 'field_thumbnail_uri') {
+    public function getGeneratedThumbnailUri(int $index = 0, string $fieldName = 'field_thumbnail_uri') {
         if (isset($this->mediasData[$index]) && $this->mediasData[$index]->entity->hasField($fieldName)) {
-            return $this->mediasData[$index]->entity->get('field_thumbnail_uri')->value;
+            return $this->mediasData[$index]->entity->get($fieldName)->value;
         }
 
         return null;
@@ -114,10 +114,9 @@ class DrupMedia {
      * @param \Drupal\media\Entity\Media $media
      * @param $fieldName
      *
-     * @return \Drupal\Core\Entity\EntityInterface|\Drupal\file\Entity\File|mixed|null
-     * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+     * @return \Drupal\file\Entity\File|mixed|null
      */
-    public static function getReferencedFile(Media $media, $fieldName) {
+    public static function getReferencedFile(Media $media, string $fieldName) {
         if ($media->hasField($fieldName)) {
             /** @var FieldItemBase $fileReferenced */
             $fileReferenced = $media->get($fieldName)->first();
@@ -141,10 +140,10 @@ class DrupMedia {
      *
      * @return array
      */
-    protected function formatMedias($medias) {
+    protected function formatMedias($medias): array {
         $entities = [];
 
-        if (!is_array($medias)) {
+        if (!\is_array($medias)) {
             $medias = [$medias];
         }
 
@@ -162,7 +161,7 @@ class DrupMedia {
      *
      * @return array
      */
-    protected function getData() {
+    protected function getData(): array {
         $data = [];
 
         if (!empty($this->mediasList)) {
@@ -218,7 +217,8 @@ class DrupMedia {
      *
      * @return string
      */
-    protected function formatFieldName($fieldName) {
+    protected function formatFieldName(string $fieldName): string {
         return $fieldName ?? 'field_media_' . $this->type;
     }
+
 }

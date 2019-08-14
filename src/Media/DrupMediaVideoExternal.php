@@ -21,9 +21,9 @@ class DrupMediaVideoExternal extends DrupMedia {
      * DrupMediaVideoExternal constructor.
      *
      * @param int|int[]|Media|Media[] $medias
-     * @param null $fileField
+     * @param string $fileField
      */
-    public function __construct($medias, $fileField = null) {
+    public function __construct($medias, string $fileField = null) {
         $this->type = 'video_external';
 
         if ($fileField === null) {
@@ -38,7 +38,7 @@ class DrupMediaVideoExternal extends DrupMedia {
      *
      * @return array
      */
-    public function renderMedias($attributes = []) {
+    public function renderMedias(array $attributes = []): array {
         $medias = [];
 
         if (!empty($this->mediasData)) {
@@ -53,7 +53,7 @@ class DrupMediaVideoExternal extends DrupMedia {
     /**
      * @return array
      */
-    public function getMediasUrl() {
+    public function getMediasUrl(): array {
         $urls = [];
 
         foreach ($this->mediasData as $index => $media) {
@@ -68,7 +68,7 @@ class DrupMediaVideoExternal extends DrupMedia {
      *
      * @return array
      */
-    public function getMediasData($thumbnailStyle = null) {
+    public function getMediasData(string $thumbnailStyle = null): array {
         $data = [];
 
         foreach ($this->mediasData as $index => $media) {
@@ -87,7 +87,7 @@ class DrupMediaVideoExternal extends DrupMedia {
      *
      * @return bool
      */
-    protected function renderMedia($index = 0, $attributes = []) {
+    protected function renderMedia($index = 0, array $attributes = []) {
 //        if (isset($this->mediasData[$index])) {
 //        }
 
@@ -114,21 +114,21 @@ class DrupMediaVideoExternal extends DrupMedia {
      *
      * @return array
      */
-    protected function getMediaData($index = 0, $thumbnailStyle = null) {
+    protected function getMediaData($index = 0, string $thumbnailStyle = null): array {
         $data = [];
 
         if (isset($this->mediasData[$index])) {
-            $iframe = $this->mediasData[$index]->entity->get('field_video_external_iframe')->value;
-            $thumbnailUri = $this->mediasData[$index]->entity->get('field_thumbnail_uri')->value;
-            $name = $this->mediasData[$index]->entity->getName();
+            $entity = $this->mediasData[$index]->entity;
+            $iframe = $entity->get('field_video_external_iframe')->value;
+            $thumbnailUri = $entity->get('field_thumbnail_uri')->value;
 
             $data = [
                 'url' => $this->mediasData[$index]->field_value,
-                'name' => $this->mediasData[$index]->entity->getName(),
+                'name' => $entity->getName(),
                 'legend' => $this->getLegend($index),
                 'iframe' => $iframe,
                 'iframe_url' => self::extractIframeUrl($iframe),
-                'thumbnail' => DrupFile::renderImageByUri($thumbnailUri, $thumbnailStyle, ['alt' => $name]),
+                'thumbnail' => DrupFile::renderImageByUri($thumbnailUri, $thumbnailStyle, ['alt' => $entity->getName()]),
                 'thumbnail_url' => file_create_url($thumbnailUri)
             ];
         }
@@ -148,6 +148,5 @@ class DrupMediaVideoExternal extends DrupMedia {
 
         return $match[1] ?? null;
     }
-
 
 }

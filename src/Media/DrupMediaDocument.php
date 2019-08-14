@@ -18,15 +18,16 @@ class DrupMediaDocument extends DrupMedia {
      * @param int|int[]|Media|Media[] $medias
      * @param null $fileField
      */
-    public function __construct($medias, $fileField = null) {
+    public function __construct($medias, string $fileField = null) {
         $this->type = 'file';
+
         parent::__construct($medias, $fileField);
     }
 
     /**
      * @return array
      */
-    public function getMediasUrl() {
+    public function getMediasUrl(): array {
         $urls = [];
 
         foreach ($this->mediasData as $index => $media) {
@@ -39,7 +40,7 @@ class DrupMediaDocument extends DrupMedia {
     /**
      * @return array
      */
-    public function getMediasData() {
+    public function getMediasData(): array {
         $medias = [];
 
         foreach ($this->mediasData as $index => $media) {
@@ -54,7 +55,7 @@ class DrupMediaDocument extends DrupMedia {
      *
      * @return array
      */
-    protected function getMediaData($index = 0) {
+    protected function getMediaData(int $index = 0): array {
         $data = [];
 
         if ($url = $this->getMediaUrl($index)) {
@@ -63,7 +64,7 @@ class DrupMediaDocument extends DrupMedia {
                 'size' => (string) format_size($this->mediasData[$index]->field_value->getSize()),
                 'mime' => explode('/', $this->mediasData[$index]->field_value->getMimeType())[1],
                 'name' => $this->mediasData[$index]->field_value->getFilename(),
-                'title' => $this->mediasData[$index]->entity->getName(),
+                'title' => $this->mediasData[$index]->entity->getName()
             ];
         }
 
@@ -75,7 +76,7 @@ class DrupMediaDocument extends DrupMedia {
      *
      * @return bool|string
      */
-    protected function getMediaUrl($index = 0) {
+    protected function getMediaUrl(int $index = 0) {
         if (!empty($this->mediasData[$index]) && ($fileUri = $this->mediasData[$index]->field_value->getFileUri())) {
             return file_create_url($fileUri);
         }
@@ -91,7 +92,7 @@ class DrupMediaDocument extends DrupMedia {
      *
      * @return string|null
      */
-    public static function generateThumbnailUri(Media $media, $fieldName = 'field_media_file') {
+    public static function generateThumbnailUri(Media $media, string $fieldName = 'field_media_file') {
         if (($file = DrupMedia::getReferencedFile($media, $fieldName)) && $file instanceof File) {
             /** @var \Drupal\drup\Media\DrupPdfThumbnail $service */
             $service = \Drupal::service('drup_pdf_thumbnail');
@@ -101,4 +102,5 @@ class DrupMediaDocument extends DrupMedia {
 
         return null;
     }
+
 }

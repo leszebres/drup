@@ -3,6 +3,7 @@
 namespace Drupal\drup\Media;
 
 use Drupal\media\IFrameMarkup;
+use Drupal\media\OEmbed\Resource;
 
 /**
  * Class DrupFile
@@ -17,7 +18,7 @@ class DrupOEmbed {
     protected $url;
 
     /**
-     * @var \Drupal\media\OEmbed\Resource|null
+     * @var Resource|null
      */
     protected $oEmbedResource;
 
@@ -33,13 +34,15 @@ class DrupOEmbed {
     }
 
     /**
-     * @return \Drupal\media\OEmbed\Resource|null
+     * @return Resource|null
      */
     public function getResource() {
         return $this->oEmbedResource;
     }
 
     /**
+     * todo rename getLargeThumbnailUrl?
+     *
      * @return mixed|string
      */
     public function getIncreasedThumbnailUrl() {
@@ -47,14 +50,15 @@ class DrupOEmbed {
     }
 
     /**
+     * todo rename getThumbnailUrl?
      * Get thumbnail url from OEmbed resource
      *
-     * @param \Drupal\media\OEmbed\Resource $resource
+     * @param Resource $resource
      * @param bool $increaseSize
      *
      * @return mixed|string
      */
-    public static function getOEmbedThumbnailUrl(\Drupal\media\OEmbed\Resource $resource, bool $increaseSize = true) {
+    public static function getOEmbedThumbnailUrl(Resource $resource, bool $increaseSize = true) {
         $url = null;
 
         if ($uri = $resource->getThumbnailUrl()) {
@@ -80,11 +84,12 @@ class DrupOEmbed {
     }
 
     /**
+     * todo rename fetchResourceFromUrl
      * Encode media public url into OEmbed resource
      *
      * @param string $url
      *
-     * @return \Drupal\media\OEmbed\Resource|null
+     * @return Resource|null
      */
     public static function fetchResourceByUrl(string $url) {
         if ($oEmbedUrl = \Drupal::service('media.oembed.url_resolver')->getResourceUrl($url)) {
@@ -104,16 +109,17 @@ class DrupOEmbed {
      *
      * @return \Drupal\Component\Render\MarkupInterface|string|null
      */
-    public static function generateIframe($url, $asMarkup = true) {
+    public static function generateIframe(string $url, bool $returnMarkup = true) {
         if ($resource = self::fetchResourceByUrl($url)) {
             $iframe = $resource->getHtml();
 
             // unset width/height attributes
             $iframe = preg_replace('/(width|height)="\d*"\s/', '', $iframe);
 
-            return $asMarkup ? IFrameMarkup::create($iframe) : $iframe;
+            return $returnMarkup ? IFrameMarkup::create($iframe) : $iframe;
         }
 
         return null;
     }
+
 }
