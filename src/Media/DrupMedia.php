@@ -55,7 +55,7 @@ class DrupMedia {
      * @param int|int[]|Media|Media[] $medias
      * @param null $fileField
      */
-    public function __construct($medias, string $fileField = null) {
+    public function __construct($medias, $fileField = null) {
         $this->languageId = \Drupal::languageManager()->getCurrentLanguage()->getId();
 
         if (!empty($medias)) {
@@ -217,7 +217,7 @@ class DrupMedia {
      *
      * @return string
      */
-    protected function formatFieldName(string $fieldName): string {
+    protected function formatFieldName($fieldName): string {
         return $fieldName ?? 'field_media_' . $this->type;
     }
 

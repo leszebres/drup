@@ -319,7 +319,7 @@ class DrupFile {
             $options['mimetype'] = $size['mime'];
         }
 
-        return $options;
+        return (object) $options;
     }
 
 }
