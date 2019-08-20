@@ -118,6 +118,7 @@ class DrupMediaVideoExternal extends DrupMedia {
         $data = [];
 
         if (isset($this->mediasData[$index])) {
+            /** @var \Drupal\media\Entity\Media $entity */
             $entity = $this->mediasData[$index]->entity;
             $iframe = $entity->get('field_video_external_iframe')->value;
             $thumbnailUri = $entity->get('field_thumbnail_uri')->value;
@@ -128,7 +129,7 @@ class DrupMediaVideoExternal extends DrupMedia {
                 'legend' => $this->getLegend($index),
                 'iframe' => $iframe,
                 'iframe_url' => self::extractIframeUrl($iframe),
-                'thumbnail' => DrupFile::renderImageByUri($thumbnailUri, $thumbnailStyle, ['alt' => $entity->getName()]),
+                'thumbnail' => DrupFile::renderImageFromUri($thumbnailUri, $thumbnailStyle, ['alt' => $entity->getName()]),
                 'thumbnail_url' => file_create_url($thumbnailUri)
             ];
         }

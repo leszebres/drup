@@ -41,6 +41,8 @@ class DrupFile {
     }
 
     /**
+     * Instancie selon un id de File
+     *
      * @param string $fid
      *
      * @return \Drupal\drup\Media\DrupFile
@@ -53,13 +55,35 @@ class DrupFile {
         return null;
     }
 
+
     /**
+     * Url absolue d'une image avec style d'image
+     *
      * @param string $style
+     *
+     * @return string|null
+     */
+    public function getMediaUrl(string $style) {
+        $url = null;
+
+        if ($style !== null && $this->isValid() && ($imageStyle = self::getImageStyleEntity($style))) {
+            $url = $imageStyle->buildUrl($this->uri);
+        } else {
+            $url = file_create_url($this->uri);
+        }
+
+        return $url;
+    }
+
+    /**
+     * Rendu HTML d'un fichier de type image, avec un syle d'image
+     *
+     * @param string|null $style
      * @param array  $attributes
      *
      * @return bool|array
      */
-    public function renderImage(string $style, array $attributes = []) {
+    public function renderImage($style = null, array $attributes = []) {
         if (!$this->isValid()) {
             return false;
         }
@@ -109,60 +133,17 @@ class DrupFile {
         return $renderer->render($rendererOptions);
     }
 
+
     /**
-     * @param $style
+     * Rendu HTML d'un fichier de type image, avec un syle d'image, depuis une uri
      *
-     * @return \Drupal\Core\GeneratedUrl|string|null
-     */
-    public function getMediaUrl($style) {
-        $url = null;
-
-        if ($style !== null && $this->isValid() && ($imageStyle = self::getImageStyleEntity($style))) {
-            $url = $imageStyle->buildUrl($this->uri);
-        } else {
-            $url = file_create_url($this->uri);
-        }
-
-        return $url;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isValid(): bool {
-        return $this->image->isValid();
-    }
-
-    /**
-     * @param $style
-     * @param bool $allowResponsiveImageStyle
-     *
-     * @return \Drupal\image\Entity\ImageStyle|\Drupal\responsive_image\Entity\ResponsiveImageStyle|null
-     */
-    public static function getImageStyleEntity(string $style, bool $allowResponsiveImageStyle = false) {
-        $imageStyle = ImageStyle::load($style);
-
-        if ($imageStyle instanceof ImageStyle) {
-            return $imageStyle;
-        }
-
-        if ($allowResponsiveImageStyle && ($responsiveImageStyle = ResponsiveImageStyle::load($style)) && $responsiveImageStyle instanceof ResponsiveImageStyle) {
-            return $responsiveImageStyle;
-        }
-
-        return null;
-    }
-
-    /**
-     * todo refactor + rename "renderImageFromUri"
-     *
-     * @param $uri
-     * @param $style
+     * @param string $uri
+     * @param string|null $style
      * @param array $attributes
      *
      * @return bool
      */
-    public static function renderImageByUri($uri, $style, $attributes = []) {
+    public static function renderImageFromUri(string $uri, $style = null, $attributes = []) {
         $rendererOptions = [
             '#uri' => $uri,
             '#attributes' => []
@@ -203,14 +184,60 @@ class DrupFile {
     }
 
     /**
+     * @deprecated
+     *
+     * @param string $uri
+     * @param null $style
+     * @param array $attributes
+     *
+     * @return bool
+     */
+    public static function renderImageByUri(string $uri, $style = null, $attributes = []) {
+        return self::renderImageFromUri($uri, $style, $attributes);
+    }
+
+    /**
+     * Fichier existant
+     *
+     * @return bool
+     */
+    public function isValid(): bool {
+        return $this->image->isValid();
+    }
+
+    /**
+     * Entité ImageStyle ou ResponsiveImageStyle
+     *
+     * @param $style
+     * @param bool $allowResponsiveImageStyle
+     *
+     * @return \Drupal\image\Entity\ImageStyle|\Drupal\responsive_image\Entity\ResponsiveImageStyle|null
+     */
+    public static function getImageStyleEntity(string $style, bool $allowResponsiveImageStyle = false) {
+        $imageStyle = ImageStyle::load($style);
+
+        if ($imageStyle instanceof ImageStyle) {
+            return $imageStyle;
+        }
+
+        if ($allowResponsiveImageStyle && ($responsiveImageStyle = ResponsiveImageStyle::load($style)) && $responsiveImageStyle instanceof ResponsiveImageStyle) {
+            return $responsiveImageStyle;
+        }
+
+        return null;
+    }
+
+    /**
+     * Contenu d'un fichier SVG
+     *
      * @param string $mediaUrl
      *
      * @return string|null
      */
-    public static function getSVGContent($mediaUrl) {
+    public static function getSVGContent(string $url) {
         $output = null;
 
-        if ($mediaContent = @file_get_contents($mediaUrl)) {
+        if ($mediaContent = @file_get_contents($url)) {
             $output = preg_replace('/<!--.*?-->/ms', '', $mediaContent);
         }
 
@@ -218,6 +245,8 @@ class DrupFile {
     }
 
     /**
+     * Rendu HTML d'un fichier SVG
+     *
      * @param string $mediaUrl
      *
      * @return \Drupal\Component\Render\MarkupInterface|null
@@ -255,7 +284,7 @@ class DrupFile {
     }
 
     /**
-     * Retourne l'url du fichier
+     * Retourne l'url d'un fichier
      *
      * @param      $fid
      * @param bool $absolute
@@ -281,6 +310,8 @@ class DrupFile {
     }
 
     /**
+     * Chemin d'un fichier d'un thème
+     *
      * @param string $relativePath
      * @param string $theme
      *

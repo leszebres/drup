@@ -16,7 +16,7 @@ class DrupRouteSubscriber extends RouteSubscriberBase {
      * @param \Symfony\Component\Routing\RouteCollection $collection
      */
     public function alterRoutes(RouteCollection $collection) {
-        // Autocomplete
+        // Entity autocomplete
         if ($route = $collection->get('system.entity_autocomplete')) {
             $route->setDefault('_controller', '\Drupal\drup\Controller\DrupEntityAutocompleteController::handleAutocomplete');
         }

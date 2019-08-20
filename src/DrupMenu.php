@@ -285,14 +285,13 @@ class DrupMenu {
     }
 
     /**
-     * @todo currentEntity
      * Retourne les liens frères
      *
      * @param string $menuName
      *
      * @return array
      */
-    public static function getSiblings(EntityInterface $currentEntity = null,$menuName = 'main', $loadEntities = true) {
+    public static function getSiblings(EntityInterface $currentEntity = null, $menuName = 'main', $loadEntities = true) {
         $navItems = [];
         $menuTreeService = \Drupal::menuTree();
 

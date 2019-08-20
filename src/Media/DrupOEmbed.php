@@ -6,7 +6,7 @@ use Drupal\media\IFrameMarkup;
 use Drupal\media\OEmbed\Resource;
 
 /**
- * Class DrupFile
+ * Class DrupOEmbed
  *
  * @package Drupal\drup\Media
  */
@@ -30,7 +30,7 @@ class DrupOEmbed {
     public function __construct(string $url) {
         $this->url = $url;
 
-        $this->oEmbedResource = self::fetchResourceByUrl($this->url);
+        $this->oEmbedResource = self::fetchResourceFromUrl($this->url);
     }
 
     /**
@@ -41,24 +41,23 @@ class DrupOEmbed {
     }
 
     /**
-     * todo rename getLargeThumbnailUrl?
+     * @param bool $increaseSize
      *
-     * @return mixed|string
+     * @return string|null
      */
-    public function getIncreasedThumbnailUrl() {
-        return self::getOEmbedThumbnailUrl($this->getResource(), true);
+    public function getThumbnailUrl(bool $increaseSize = true) {
+        return self::manageResourceThumbnailUrl($this->getResource(), $increaseSize);
     }
 
     /**
-     * todo rename getThumbnailUrl?
      * Get thumbnail url from OEmbed resource
      *
      * @param Resource $resource
      * @param bool $increaseSize
      *
-     * @return mixed|string
+     * @return string|null
      */
-    public static function getOEmbedThumbnailUrl(Resource $resource, bool $increaseSize = true) {
+    public static function manageResourceThumbnailUrl(Resource $resource, bool $increaseSize = true) {
         $url = null;
 
         if ($uri = $resource->getThumbnailUrl()) {
@@ -84,14 +83,13 @@ class DrupOEmbed {
     }
 
     /**
-     * todo rename fetchResourceFromUrl
      * Encode media public url into OEmbed resource
      *
      * @param string $url
      *
      * @return Resource|null
      */
-    public static function fetchResourceByUrl(string $url) {
+    public static function fetchResourceFromUrl(string $url) {
         if ($oEmbedUrl = \Drupal::service('media.oembed.url_resolver')->getResourceUrl($url)) {
             if ($resource = \Drupal::service('media.oembed.resource_fetcher')->fetchResource($oEmbedUrl)) {
                 return $resource;
@@ -110,7 +108,7 @@ class DrupOEmbed {
      * @return \Drupal\Component\Render\MarkupInterface|string|null
      */
     public static function generateIframe(string $url, bool $returnMarkup = true) {
-        if ($resource = self::fetchResourceByUrl($url)) {
+        if ($resource = self::fetchResourceFromUrl($url)) {
             $iframe = $resource->getHtml();
 
             // unset width/height attributes
