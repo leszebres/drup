@@ -59,11 +59,11 @@ class DrupFile {
     /**
      * Url absolue d'une image avec style d'image
      *
-     * @param string $style
+     * @param string|null $style
      *
      * @return string|null
      */
-    public function getMediaUrl(string $style) {
+    public function getMediaUrl($style = null) {
         $url = null;
 
         if ($style !== null && $this->isValid() && ($imageStyle = self::getImageStyleEntity($style))) {
