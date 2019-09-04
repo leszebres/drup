@@ -60,6 +60,19 @@ class Term extends \Drupal\taxonomy\Entity\Term {
         return new DrupField($this);
     }
 
+    /**
+     * @return Term|null
+     */
+    public function getParent() {
+        $ancestors = \Drupal::service('entity_type.manager')->getStorage('taxonomy_term')->loadParents($this->id());
+
+        if (!empty($ancestors)) {
+            return current($ancestors);
+        }
+
+        return null;
+    }
+
 
     /**
      * @param string $vid
