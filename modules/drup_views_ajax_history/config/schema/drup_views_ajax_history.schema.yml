@@ -1,0 +1,6 @@
+views.display_extender.drup_views_ajax_history:
+  type: views_display_extender
+  mapping:
+    history:
+      type: Boolean
+      label: 'Use ajax history'

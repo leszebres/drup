@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * Implements hook_update_N().
+ *
+ * Allows AJAX history to be turned off individually per view.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function drup_views_ajax_history_install() {
+    $config = \Drupal::service('config.factory')->getEditable('views.settings');
+    $display_extenders = $config->get('display_extenders') ?: array();
+    $display_extenders[] = 'drup_views_ajax_history';
+    $config->set('display_extenders', $display_extenders);
+    $config->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function drup_views_ajax_history_uninstall() {
+    $config = \Drupal::service('config.factory')->getEditable('views.settings');
+    $display_extenders = $config->get('display_extenders') ?: array();
+    $key = array_search('drup_views_ajax_history', $display_extenders);
+
+    if ($key !== false) {
+        unset($display_extenders[$key]);
+        $config->set('display_extenders', $display_extenders);
+        $config->save();
+    }
+
+    dpm('okk');
+}
