@@ -59,7 +59,7 @@ abstract class DrupUrl {
      * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
      */
     public static function loadEntity(Url $url) {
-        if (!$url->isExternal()) {
+        if (!$url->isExternal() && $url->isRouted()) {
             $urlParameters = $url->getRouteParameters();
 
             if (!empty($urlParameters)) {
