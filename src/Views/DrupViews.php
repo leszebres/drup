@@ -164,30 +164,34 @@ class DrupViews {
     }
 
     /**
-     * Récupère le type d'entité et son bundle configuré dans la vue
+     * Récupère le type d'entité, son bundle et la column id (ex: nid pour node) desservis par la vue
      *
      * @param \Drupal\views\ViewExecutable $viewExecutable
      *
      * @return array
      */
     public static function getBaseEntityInfo(ViewExecutable $viewExecutable) {
-        $baseEntityType = $viewExecutable->getBaseEntityType()->id();
+        $entityType = $viewExecutable->getBaseEntityType();
+        $type = $entityType->id();
+        $baseField = $entityType->getKey('id');
 
-        $baseEntityBundle = null;
+        $bundle = null;
         $dependencies = $viewExecutable->getDependencies();
+
         if (isset($dependencies['config'])) {
-            $search = $baseEntityType . '.type.';
+            $search = $type . '.type.';
             foreach ($dependencies['config'] as $index => $dependency) {
                 if (strpos($dependency, $search) === 0) {
-                    $baseEntityBundle = str_replace($search, '', $dependency);
+                    $bundle = str_replace($search, '', $dependency);
                     break;
                 }
             }
         }
 
         return [
-            'type' => $baseEntityType,
-            'bundle' => $baseEntityBundle
+            'type' => $type,
+            'bundle' => $bundle,
+            'base_field' => $baseField
         ];
     }
 }
