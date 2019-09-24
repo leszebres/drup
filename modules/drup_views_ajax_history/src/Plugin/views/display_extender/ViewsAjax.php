@@ -6,7 +6,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\display_extender\DisplayExtenderPluginBase;
 
 /**
- * Defines a display extender for views_ajax_history.
+ * Defines a display extender for drup_views_ajax_history.
  *
  * @ViewsDisplayExtender(
  *   id = "drup_views_ajax_history",
@@ -22,7 +22,7 @@ class ViewsAjax extends DisplayExtenderPluginBase {
         $options = parent::defineOptions();
 
         $options['history'] = [
-            'default' => true
+            'default' => false,
         ];
 
         return $options;
