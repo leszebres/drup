@@ -4,3 +4,45 @@
  * @file
  * Contains drup.module.
  */
+
+use Drupal\file\FileInterface;
+
+/**
+ * Transliterate uploaded files name
+ * Temporary solution, waiting for 8.8.x Drupal core version
+ *
+ * @see https://www.drupal.org/project/transliterate_filenames
+ * @see https://www.drupal.org/node/2492171
+ *
+ * Implements hook_file_validate().
+ */
+function drup_file_validate(FileInterface $file) {
+    /** @var \Drupal\Core\File\FileSystemInterface $fileSystem */
+    $fileSystem = \Drupal::service('file_system');
+
+    $filename = $fileSystem->basename($file->destination);
+
+    $filename = \Drupal::transliteration()->transliterate($filename);
+    // Replace whitespace.
+    $filename = str_replace(' ', '-', $filename);
+    // Remove remaining unsafe characters.
+    $filename = preg_replace('![^0-9A-Za-z_.-]!', '', $filename);
+    // Remove multiple consecutive non-alphabetical characters.
+    $filename = preg_replace('/(_)_+|(\.)\.+|(-)-+/', '\\1\\2\\3', $filename);
+    // Force lowercase to prevent issues on case-insensitive file systems.
+    $filename = strtolower($filename);
+
+    // For empty.
+    $name = explode('.', $filename);
+    $name = reset($name);
+    $extension = explode(".", $filename);
+    $extension = end($extension);
+
+    // Is empty.
+    if (!$name) {
+        $filename = md5(rand()) . '.' . $extension;
+    }
+
+    $dirname = $fileSystem->dirname($file->destination);
+    $file->destination = $fileSystem->createFilename($filename, $dirname);
+}
