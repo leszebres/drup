@@ -178,7 +178,11 @@ class DrupMenu {
             /** @var \Drupal\Core\Menu\MenuLinkManager $menuLinkManager */
             $menuLinkManager = \Drupal::service('plugin.manager.menu.link');
             $links = $menuLinkManager->loadLinksByRoute($currentEntity->toUrl()->getRouteName(), $currentEntity->toUrl()->getRouteParameters(), $menuName);
-            $activeTrail = $menuLinkManager->getParentIds(current(array_keys($links)));
+            $activeTrail = !empty($links) ? $menuLinkManager->getParentIds(current(array_keys($links))) : [];
+        }
+
+        if (empty($activeTrail)) {
+            return [];
         }
 
         $parameters->setActiveTrail($activeTrail);
