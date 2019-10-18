@@ -2,6 +2,9 @@
 
 namespace Drupal\drup_router;
 
+use Drupal\Core\Language\Language;
+use Drupal\Core\Url;
+
 /**
  * Class DrupRouter
  *
@@ -108,9 +111,8 @@ class DrupRouter {
      * @return null
      */
     public function getPath($routeName, $context = null) {
-        if (($route = $this->getRoute($routeName)) && $routeEntityId = $this->getId($routeName, $context)) {
-            $entityPath = ($route['targetType'] === 'taxonomy_term') ? 'taxonomy/term' : $route['targetType'];
-            return \Drupal::service('path.alias_manager')->getAliasByPath('/' . $entityPath . '/' . $routeEntityId, $this->getContext($context));
+        if (($url = $this->getUrl($routeName, $context)) && $url instanceof Url) {
+            return $url->toString();
         }
 
         return null;
@@ -128,6 +130,24 @@ class DrupRouter {
     public function getUri($routeName, $context = null) {
         if (($route = $this->getRoute($routeName)) && $routeEntityId = $this->getId($routeName, $context)) {
             return 'internal:/' . $route['targetType'] . '/' . $routeEntityId;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get Url entity from route name
+     *
+     * @param $routeName
+     * @param null $context
+     *
+     * @return \Drupal\Core\Url|null
+     */
+    public function getUrl($routeName, $context = null) {
+        $language = new Language(['id' => $this->getContext($context)]);
+
+        if (($uri = $this->getUri($routeName, $context)) && ($url = Url::fromUri($uri, ['language' => $language])) && $url->isRouted()) {
+            return $url;
         }
 
         return null;
