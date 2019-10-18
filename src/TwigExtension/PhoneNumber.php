@@ -7,9 +7,9 @@ use Drupal\drup\Helper\DrupString;
 /**
  * Class PhoneNumber
  *
- * Sanitize a phone number for link src attribute with tel: prefix
+ * Format a phone number with separators
  *
- * @example <a href="{{ '05 55 55 55 55'|phone_number }}"></a> => <a href="tel:0555555555"></a>
+ * @example {{ '+33655555555'|phone_number }} => +33 6 55 55 55 55
  *
  * @package Drupal\drup\TwigExtension
  */
@@ -28,6 +28,7 @@ class PhoneNumber extends \Twig_Extension {
      * @return string
      */
     public static function phoneNumber($string) {
-        return DrupString::formatPhoneNumber($string, 'tel:');
+        return DrupString::formatPhoneNumber($string);
     }
+
 }

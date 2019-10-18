@@ -33,4 +33,5 @@ class UrlTitle extends \Twig_Extension {
 
         return $string;
     }
+
 }

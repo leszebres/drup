@@ -37,29 +37,44 @@ abstract class DrupString {
     }
 
     /**
-     * Formattage d'un numéro de téléphone
+     * Formatage d'un numéro de téléphone
      *
      * @param string $phone Numéro
-     * @param null $prefix Préfix du numéro (+33 ou tel:)
+     * @param string $separator Séparateur des nombres
      *
      * @return string
      */
-    public static function formatPhoneNumber($phone, $prefix = null) {
-        // Remplacement des caractères spéciaux
-        $phone = str_replace([' ', '.'], '', $phone);
+    public static function formatPhoneNumber($phone, $separator = ' ') {
+        $langcode = \Drupal::languageManager()->getCurrentLanguage()->getId();
 
-        if (!empty($phone) && $prefix !== null) {
-            // Ajout de l'indicatif région (+33)
-            if (strncmp($prefix, '+', 1) === 0) {
-                $phone = $prefix . substr($phone, 1);
-            }
-            // Ajout du prefix custom (tel:)
-            else {
-                $phone = $prefix . $phone;
-            }
+        switch ($langcode) {
+            case 'fr':
+            default:
+                $split = str_split($phone, 2);
+
+                if (strncmp($phone, '+', 1) === 0) {
+                    $split[0] .= substr($split[1], 0, 1);
+                    $split[1] = substr($split[1], 1);
+                }
+                break;
+        }
+
+        if (!empty($split)) {
+            $phone = implode($separator, $split);
         }
 
         return $phone;
+    }
+
+    /**
+     * Enlève les caractères spéciaux d'un numéro de téléphone
+     *
+     * @param $phone
+     *
+     * @return mixed
+     */
+    public static function cleanPhoneNumber($phone) {
+        return str_replace([' ', '.'], '', $phone);
     }
 
     /**
