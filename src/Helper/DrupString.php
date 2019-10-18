@@ -204,24 +204,24 @@ abstract class DrupString {
      * @return mixed
      */
     public static function stringToLinks($string, $types = ['emails', 'phone_numbers', 'urls']) {
-        if (in_array('emails', $types)) {
+        if (\in_array('emails', $types)) {
             if ($emails = self::extractEmails($string)) {
                 foreach ($emails as $email) {
-                    $string = str_replace($email, '<a href="mailto:'.$email.'" target="_blank">'.$email.'</a>', $string);
+                    $string = str_replace($email, '<a href="mailto:' . $email . '" target="_blank">' . $email . '</a>', $string);
                 }
             }
         }
-        if (in_array('urls', $types)) {
+        if (\in_array('urls', $types)) {
             if ($urls = self::extractUrls($string)) {
                 foreach ($urls as $url) {
-                    $string = str_replace($url, '<a href="'.$url.'" target="_blank">'.$url.'</a>', $string);
+                    $string = str_replace($url, '<a href="' . $url . '" target="_blank">' . $url . '</a>', $string);
                 }
             }
         }
-        if (in_array('emails', $types)) {
+        if (\in_array('emails', $types)) {
             if ($phoneNumbers = self::extractPhoneNumbers($string)) {
                 foreach ($phoneNumbers as $phoneNumber) {
-                    $string = str_replace($phoneNumber, '<a href="tel:'.self::formatPhoneNumber($phoneNumber).'" target="_blank">'.$phoneNumber.'</a>', $string);
+                    $string = str_replace($phoneNumber, '<a href="tel:' . self::cleanPhoneNumber($phoneNumber) . '" target="_blank">' . $phoneNumber . '</a>', $string);
                 }
             }
         }

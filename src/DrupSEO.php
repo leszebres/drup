@@ -274,9 +274,12 @@ abstract class DrupSEO {
                     $replacements[$original] = $company;
 
                 } elseif ($name === 'contact:phone:international' && ($phone = $drupSettings->getValue('contact_infos_phone_number'))) {
-                    $regionCode = $drupSettings->getValue('contact_infos_country') === 'FR' ? '+33' : null;
+                    if (strncmp($phone, '+', 1) !== 0) {
+                        $regionCode = $drupSettings->getValue('contact_infos_country') === 'FR' ? '+33' : null;
+                        $phone = $regionCode . substr($phone, 1);
+                    }
 
-                    $replacements[$original] = DrupString::formatPhoneNumber($phone, $regionCode);
+                    $replacements[$original] = DrupString::cleanPhoneNumber($phone);
 
                 } elseif ($name === 'language:available:name:comma') {
                     $languages = \Drupal::LanguageManager()->getLanguages();
