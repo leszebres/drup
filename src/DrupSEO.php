@@ -436,7 +436,8 @@ abstract class DrupSEO {
     }
 
     /**
-     * @test
+     * Gestionnaire de pagination pour les vues
+     *
      * @param $variables
      */
     public static function pagerViewsHandler(&$variables) {
@@ -467,6 +468,48 @@ abstract class DrupSEO {
                         ],
                         true
                     ];
+                }
+            }
+        }
+    }
+
+    /**
+     * Ajoute la vignette pour les liens du sitemap XML
+     *
+     * @param array  $links
+     * @param string $imageField
+     */
+    public static function sitemapxmlAddImages(array &$links, $imageFieldname = 'thumbnail') {
+        /** @var \Drupal\simple_sitemap\Simplesitemap $generator */
+        $generator = \Drupal::service('simple_sitemap.generator');
+        $domain = \Drupal::request()->getSchemeAndHttpHost();
+
+        foreach ($links as $id => $link) {
+            if (empty($link['images'])) {
+                $url = Url::fromUri('internal:' . str_replace($domain, '', $link['url']));
+
+                if ($url instanceof Url) {
+                    // Récupération de l'entité à partir de l'url
+                    $entity = DrupUrl::loadEntity($url);
+
+                    if ($entity !== null) {
+                        $bundleSettings = (array) $generator->getBundleSettings($entity->getEntityTypeId(), $entity->bundle());
+
+                        // Si le bundle autorise l'inclusion des images
+                        if ($bundleSettings['index'] && $bundleSettings['include_images']) {
+                            // Ajout de l'image
+                            /** @var \Drupal\drup\Media\DrupMediaImage $thumbnailMedia */
+                            if (($thumbnailMedia = $entity->drupField()->getDrupMedia($imageFieldname, 'image')) && ($medias = $thumbnailMedia->getMediasData(self::$imageStyle))) {
+                                $media = current($medias);
+
+                                $links[$id]['images'][] = [
+                                    'path' => $media['url'] ?? null,
+                                    'alt' => $media['alt'] ?? null,
+                                    'title' => $media['title'] ?? null
+                                ];
+                            }
+                        }
+                    }
                 }
             }
         }

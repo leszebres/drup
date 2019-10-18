@@ -63,8 +63,8 @@ abstract class DrupUrl {
             $urlParameters = $url->getRouteParameters();
 
             if (!empty($urlParameters)) {
-                $entityType = current(array_keys($urlParameters));
-                $entityId = current(array_values($urlParameters));
+                $entityType = key($urlParameters);
+                $entityId = current($urlParameters);
 
                 return \Drupal::entityTypeManager()->getStorage($entityType)->load($entityId);
             }
