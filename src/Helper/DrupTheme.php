@@ -2,8 +2,6 @@
 
 namespace Drupal\drup\Helper;
 
-use Drupal\Component\Utility\Html;
-
 /**
  * Class DrupTheme
  *
@@ -18,7 +16,7 @@ abstract class DrupTheme {
      * @param array $options
      */
     public static function format(&$themes, $options = []) {
-        $options = array_merge([
+        $options = \array_merge([
             'type' => 'blocks'
         ], $options);
 
@@ -28,22 +26,22 @@ abstract class DrupTheme {
         foreach ($themes as $themeId => &$theme) {
             $template = null;
 
-            if (strpos($themeId, 'drup_' . $options['type']) !== false) {
+            if (\strpos($themeId, 'drup_' . $options['type']) !== false) {
                 // Admin
-                if (strpos($themeId, 'drup_' . $options['type'] . '_admin') !== false) {
-                    $template = str_replace('drup_' . $options['type'] . '_admin_', '', $themeId);
+                if (\strpos($themeId, 'drup_' . $options['type'] . '_admin') !== false) {
+                    $template = \str_replace('drup_' . $options['type'] . '_admin_', '', $themeId);
                     $theme['variables']['admin_url'] = null;
                 } else {
-                    $template = str_replace('drup_' . $options['type'] . '_', '', $themeId);
+                    $template = \str_replace('drup_' . $options['type'] . '_', '', $themeId);
                 }
             }
 
             if ($template === null) {
-                $template = str_replace('drup_', '', $themeId);
+                $template = \str_replace('drup_', '', $themeId);
             }
 
             $theme['path'] = $themePathBlocks;
-            $theme['template'] = Html::getId($template);
+            $theme['template'] = \str_replace('_', '-', $template);
             $theme['variables']['theme_path'] = $themePath;
         }
         unset($theme);
