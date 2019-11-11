@@ -3,7 +3,7 @@
 namespace Drupal\drup\Entity;
 
 use Drupal\Core\Datetime\DrupalDateTime;
-use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\drup\Helper\DrupString;
 use Drupal\field\Entity\FieldConfig;
 
@@ -16,17 +16,33 @@ use Drupal\field\Entity\FieldConfig;
 class DrupField {
 
     /**
-     * @var \Drupal\drup\Entity\ContentEntityBase
+     * @var FieldableEntityInterface
      */
     protected $entity;
 
     /**
      * DrupField constructor.
      *
-     * @param \Drupal\Core\Entity\EntityInterface $entity
+     * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
      */
-    public function __construct(EntityInterface $entity) {
+    public function __construct(FieldableEntityInterface $entity) {
         $this->entity = $entity;
+    }
+
+    /**
+     * @return \Drupal\Core\Entity\FieldableEntityInterface
+     */
+    public function entity() {
+        return $this->entity;
+    }
+
+    /**
+     * @param string $field
+     *
+     * @return bool
+     */
+    public function hasField(string $field) {
+        return $this->entity()->hasField(self::format($field));
     }
 
     /**
@@ -34,8 +50,8 @@ class DrupField {
      *
      * @return \Drupal\Core\Field\FieldItemList|bool
      */
-    public function get($field) {
-        if ($this->entity->hasField(self::format($field)) && ($data = $this->entity->get(self::format($field))) && !$data->isEmpty()) {
+    public function get(string $field) {
+        if ($this->hasField($field) && ($data = $this->entity()->get(self::format($field))) && !$data->isEmpty()) {
             return $data;
         }
 
@@ -46,10 +62,9 @@ class DrupField {
      * @param string $field
      * @param null|string $key
      *
-     * @return mixed|null
-     * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+     * @return string|array|null
      */
-    public function getValue($field, $key = null) {
+    public function getValue(string $field, string $key = null) {
         if (($fieldEntity = $this->get($field)) && ($fistField = $fieldEntity->first()) && ($data = $fistField->getValue())) {
             if (is_string($key)) {
                 if (isset($data[$key])) {
@@ -65,11 +80,11 @@ class DrupField {
 
     /**
      * @param string $field
-     * @param null|string $key
+     * @param string|null $key
      *
      * @return array
      */
-    public function getValues($field, $key = null) {
+    public function getValues(string $field, string $key = null) {
         $values = [];
 
         if ($fields = $this->get($field)) {
@@ -93,10 +108,9 @@ class DrupField {
      * @param string $field
      * @param string $key
      *
-     * @return mixed|null
-     * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+     * @return array|null
      */
-    public function getProcessedText($field, $key = 'value') {
+    public function getProcessedText(string $field, string $key = 'value') {
         if (($fieldEntity = $this->get($field)) && ($fistField = $fieldEntity->first()) && ($data = $fistField->getValue())) {
             if (!empty($data) && isset($data[$key])) {
                 return [
@@ -113,9 +127,9 @@ class DrupField {
     /**
      * @param string $field
      *
-     * @return \Drupal\Core\Entity\Entity[]
+     * @return array|\Drupal\Core\Entity\EntityInterface[]
      */
-    public function getReferencedEntities($field) {
+    public function getReferencedEntities(string $field) {
         /** @var \Drupal\Core\Field\EntityReferenceFieldItemList $fields */
         if ($fields = $this->get($field)) {
             return $fields->referencedEntities();
@@ -125,13 +139,13 @@ class DrupField {
     }
 
     /**
-     * @param $field
-     * @param $type
+     * @param string $field
+     * @param string $type
      * @param mixed ...$parameters
      *
-     * @return null|\Drupal\drup\Media\DrupMediaImage|\Drupal\drup\Media\DrupMediaDocument|\Drupal\drup\Media\DrupMediaVideoExternal
+     * @return \Drupal\drup\Media\DrupMedia|null
      */
-    public function getDrupMedia($field, $type, ...$parameters) {
+    public function getDrupMedia(string $field, string $type, ...$parameters) {
         $entities = $this->getReferencedEntities($field);
         $className = '\\Drupal\\drup\\Media\\DrupMedia' . DrupString::toCamelCase($type);
 
@@ -147,13 +161,13 @@ class DrupField {
 
     /**
      * @param string $field
-     * @param null $key
+     * @param string|null $key
      * @param string $type
      * @param string $format
      *
      * @return array
      */
-    public function formatDate($field, $key = null, $type = 'medium', $format = '') {
+    public function formatDate(string $field, string $key = null, string $type = 'medium', string $format = '') {
         $datesFormatted = [];
 
         if ($fieldsDate = $this->get($field)) {
@@ -176,13 +190,13 @@ class DrupField {
     }
 
     /**
-     * @param array|object $input
+     * @param $input
      * @param string $field
-     * @param null $fieldKey
-     * @param null $outputKey
+     * @param string|null $fieldKey
+     * @param string|null $outputKey
      * @param bool $multiple
      */
-    public function add(&$input, string $field, $fieldKey = null, $outputKey = null, $multiple = false) {
+    public function add(&$input, string $field, string $fieldKey = null, string $outputKey = null, bool $multiple = false) {
         if (empty($outputKey)) {
             $outputKey = $field;
         }
@@ -198,21 +212,21 @@ class DrupField {
     }
 
     /**
-     * @param $field
+     * @param string $field
      *
      * @return \Drupal\field\Entity\FieldConfig
      */
-    public function getConfig($field) {
-        return FieldConfig::loadByName($this->entity->getEntityTypeId(), $this->entity->bundle(), self::format($field));
+    public function getConfig(string $field) {
+        return FieldConfig::loadByName($this->entity()->getEntityTypeId(), $this->entity()->bundle(), self::format($field));
     }
 
     /**
-     * @param $field
+     * @param string $field
      *
-     * @return mixed
+     * @return array|null
      */
-    public function getDisplayConfig($field) {
-        $formDisplay = \Drupal::entityTypeManager()->getStorage('entity_form_display')->load($this->entity->getEntityTypeId() . '.' . $this->entity->bundle() . '.default');
+    public function getDisplayConfig(string $field) {
+        $formDisplay = \Drupal::entityTypeManager()->getStorage('entity_form_display')->load($this->entity()->getEntityTypeId() . '.' . $this->entity()->bundle() . '.default');
 
         /** @var \Drupal\Core\Entity\EntityDisplayBase $formDisplay **/
         if ($formDisplay !== null) {
@@ -223,11 +237,11 @@ class DrupField {
     }
 
     /**
-     * @param $field
+     * @param string $field
      *
      * @return string
      */
-    public static function format($field) {
+    public static function format(string $field) {
         return in_array($field, ['title']) ? $field : 'field_' . $field;
     }
 }
