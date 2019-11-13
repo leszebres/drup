@@ -31,7 +31,8 @@ abstract class DrupTheme {
                 if (\strpos($themeId, 'drup_' . $options['type'] . '_admin') !== false) {
                     $template = \str_replace('drup_' . $options['type'] . '_admin_', '', $themeId);
                     $theme['variables']['admin_url'] = null;
-                } else {
+                }
+                else {
                     $template = \str_replace('drup_' . $options['type'] . '_', '', $themeId);
                 }
             }
@@ -40,11 +41,14 @@ abstract class DrupTheme {
                 $template = \str_replace('drup_', '', $themeId);
             }
 
-            $theme['path'] = $themePathBlocks;
-            $theme['template'] = \str_replace('_', '-', $template);
+            if (!isset($theme['template'])) {
+                $theme['path'] = $themePathBlocks;
+                $theme['template'] = \str_replace('_', '-', $template);
+            }
             $theme['variables']['theme_path'] = $themePath;
         }
         unset($theme);
+
     }
 
 }

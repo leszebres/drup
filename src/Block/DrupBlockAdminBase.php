@@ -16,69 +16,72 @@ use Drupal\drup\Helper\DrupRequest;
 abstract class DrupBlockAdminBase extends BlockBase {
 
     /**
-     * @var
+     * Langcode
+     *
+     * @var string
      */
-    public $languageId;
+    protected $languageId;
 
     /**
      * Block id
-     * @var
+     *
+     * @var string
      */
-    public $blockId;
+    protected $blockId;
 
     /**
      * @var string
      */
-    public $urlContextKey;
+    protected static $urlContextKey = 'drup-blocks-context';
 
     /**
-     * Context for block values (entityType.entityId|front) from url
+     * Les données du bloc sont contextualisées par rapport à la page où le bloc se trouve
+     * (pour notamment pouvoir placer un même bloc sur différentes pages avec différentes valeurs)
+     *
      * @var
      */
-    public $urlContextValue;
-
-    /**
-     * Block values key storage (blockId.Language.$context)
-     * @var
-     */
-    public $configKey;
+    protected $configContextValue;
 
     /**
      * Block storage config
+     *
      * @var \Drupal\Core\Config\Config
      */
-    public $config;
+    protected $config;
+
+    /**
+     * Block storage config key (blockId.languageId.configContextValue)
+     *
+     * @var string
+     */
+    protected $configKey;
 
     /**
      * Bloc storage config values
-     * @var
+     *
+     * @var array
      */
-    public $configValues;
-
-    /**
-     * Form values after submit
-     * @var
-     */
-    public $formValues;
+    protected $configValues;
 
     /**
      * Ajax items form container
-     * @var
+     *
+     * @var string
      */
-    public $ajaxContainer = 'items';
+    protected $ajaxContainer = 'items';
 
     /**
-     * Max count items for ajax form
-     * @var
+     * Max count items for ajax form (-1 for infinite)
+     *
+     * @var int
      */
-    public $ajaxMaxRows = -1;
+    protected $ajaxMaxRows = -1;
 
     /**
      * {@inheritdoc}
      */
     public function __construct(array $configuration, $plugin_id, $plugin_definition) {
         $this->languageId = \Drupal::languageManager()->getCurrentLanguage()->getId();
-        $this->urlContextKey = 'drup-blocks-context';
 
         parent::__construct($configuration, $plugin_id, $plugin_definition);
     }
@@ -89,17 +92,49 @@ abstract class DrupBlockAdminBase extends BlockBase {
     public function defaultConfiguration() {
         if (isset($this->configuration['id'])) {
             $this->blockId = $this->configuration['id'];
-
-            $view = DrupRequest::isAdminRoute() ? 'admin' : 'front';
-            $this->urlContextValue = $this->getUrlContextValue($view);
-
             $this->config = \Drupal::service('config.factory')->getEditable('drup_blocks.admin_values');
 
-            $this->configKey = $this->blockId . '.' . $this->languageId . '.' . $this->urlContextValue;
+            // Contexte de la page
+            $currentView = DrupRequest::isAdminRoute() ? 'admin' : 'front';
+            $this->configContextValue = $this->getConfigContext($currentView);
+
+            // Config / values
+            $this->configKey = $this->blockId . '.' . $this->languageId . '.' . $this->configContextValue;
             $this->configValues = $this->config->get($this->configKey);
         }
 
         return parent::defaultConfiguration();
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return mixed|null
+     */
+    public function getConfigValue(string $key) {
+        return $this->configValues[$key] ?? null;
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfigValues() {
+        return $this->configValues;
+    }
+
+    /**
+     * @param string $key
+     * @param $value
+     */
+    public function setConfigValue(string $key, $value) {
+        $this->configValues[$key] = $value;
+    }
+
+    /**
+     * @param array $values
+     */
+    public function setConfigValues(array $values) {
+        $this->configValues = array_merge($this->configValues, $values);
     }
 
     /**
@@ -108,7 +143,7 @@ abstract class DrupBlockAdminBase extends BlockBase {
     public function blockForm($form, FormStateInterface $form_state) {
         parent::blockForm($form, $form_state);
 
-        if (empty($this->urlContextValue)) {
+        if (empty($this->configContextValue)) {
             \Drupal::messenger()->addMessage($this->t('Missing context'), 'error');
         }
 
@@ -122,7 +157,9 @@ abstract class DrupBlockAdminBase extends BlockBase {
         if (isset($this->configValues[$this->ajaxContainer])) {
             unset($this->configValues[$this->ajaxContainer]['actions']);
         }
-        
+
+        $this->configValues = array_filter($this->configValues);
+
         $this->config->set($this->configKey, $this->configValues);
         $this->config->save();
     }
@@ -133,18 +170,20 @@ abstract class DrupBlockAdminBase extends BlockBase {
     public function build() {}
 
     /**
+     * A utiliser dans la methode build() pour le rendu du theme
+     *
      * @param array $parameters
      *
      * @return array
      */
-    public function mergeBuildParameters($parameters = []) {
+    protected function mergeBuildParameters(array $parameters = []) {
         $adminUrl = null;
 
         if (\Drupal::currentUser()->hasPermission('administer blocks')) {
             $adminUrl = Url::fromRoute('entity.block.edit_form', ['block' => $this->blockId], [
                 'query' => [
                     'destination' => \Drupal::destination()->get(),
-                    $this->urlContextKey => $this->urlContextValue
+                    self::$urlContextKey => $this->configContextValue
                 ]
             ]);
         }
@@ -155,20 +194,8 @@ abstract class DrupBlockAdminBase extends BlockBase {
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function getCacheContexts() {
-        return Cache::mergeContexts(parent::getCacheContexts(), DrupBlock::getDefaultCacheContexts());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCacheTags() {
-        return Cache::mergeTags(parent::getCacheTags(), DrupBlock::getDefaultCacheTags());
-    }
-
-    /**
+     * A utiliser dans la methode blockForm() pour instancier un repeater
+     *
      * @param $form
      * @param \Drupal\Core\Form\FormStateInterface $form_state
      */
@@ -187,7 +214,6 @@ abstract class DrupBlockAdminBase extends BlockBase {
         ];
 
         for ($i = 0; $i < $countItems; $i++) {
-            //$itemIndex = 'item_' . $i;
             $itemIndex = $i;
             $values = $this->configValues[$this->ajaxContainer][$itemIndex] ?? [];
 
@@ -195,8 +221,6 @@ abstract class DrupBlockAdminBase extends BlockBase {
                 '#type' => 'details',
                 '#collapsible' => true,
                 '#open' => empty($values),
-                //'#collapsed' => !empty($values),
-                //'#collapsed' => false,
                 '#title' => $this->t('Item') . ' #' . ($i + 1)
             ];
             $this->setAjaxRow($form[$this->ajaxContainer][$itemIndex], $values);
@@ -230,10 +254,11 @@ abstract class DrupBlockAdminBase extends BlockBase {
     /**
      * Set default fields for each row
      * Copy this function in Block extended class
-     * @param $rowContainer
-     * @param $rowValues
+     *
+     * @param array $rowContainer
+     * @param array $rowValues
      */
-    public function setAjaxRow(&$rowContainer, $rowValues) {
+    public function setAjaxRow(array &$rowContainer, array $rowValues) {
         /*
         $rowContainer['title'] = [
             '#type' => 'textfield',
@@ -286,13 +311,18 @@ abstract class DrupBlockAdminBase extends BlockBase {
      *
      * @return string|null
      */
-    public function getUrlContextValue($view = 'admin') {
+    protected function getConfigContext($view = 'admin') {
+        // Depuis l'admin, le contexte est présent dans l'url en paramètre GET
         if ($view === 'admin') {
-            return \Drupal::request()->query->get($this->urlContextKey);
+            return \Drupal::request()->query->get(self::$urlContextKey);
         }
+
+        // Front : HP
         if (DrupRequest::isFront()) {
             return 'front';
         }
+
+        // Front : Autre : depuis le type d'entité courante
         /** @var \Drupal\drup\DrupPageEntity $drupPageEntity */
         $drupPageEntity = \Drupal::service('drup_page_entity');
         if ($drupPageEntity->id()) {
@@ -300,5 +330,19 @@ abstract class DrupBlockAdminBase extends BlockBase {
         }
 
         return null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCacheContexts() {
+        return Cache::mergeContexts(parent::getCacheContexts(), DrupBlock::getDefaultCacheContexts());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCacheTags() {
+        return Cache::mergeTags(parent::getCacheTags(), DrupBlock::getDefaultCacheTags());
     }
 }
