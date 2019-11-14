@@ -39,6 +39,21 @@ abstract class DrupRequest {
     }
 
     /**
+     * Determines if the current route is on layout builder admin
+     *
+     * @param \Symfony\Component\Routing\Route|null $route
+     *
+     * @return bool
+     */
+    public static function isLayoutBuilderRoute(\Symfony\Component\Routing\Route $route = null): bool {
+        if ($route === null) {
+            $route = \Drupal::routeMatch()->getRouteObject();
+        }
+
+        return $route->getPath() === '/node/{node}/layout';
+    }
+
+    /**
      * @return FormattableMarkup
      */
     public static function get404Content() {
