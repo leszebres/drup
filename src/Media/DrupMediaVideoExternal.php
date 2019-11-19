@@ -80,7 +80,7 @@ class DrupMediaVideoExternal extends DrupMedia {
 
 
     /**
-     * Render iframe returned by OEmbed service
+     * Render iframe
      *
      * @param int $index
      * @param array $attributes
@@ -88,8 +88,23 @@ class DrupMediaVideoExternal extends DrupMedia {
      * @return bool
      */
     protected function renderMedia($index = 0, array $attributes = []) {
-//        if (isset($this->mediasData[$index])) {
-//        }
+        if (isset($this->mediasData[$index])) {
+            $attributes = \array_merge([
+                'src' => $this->getMediaUrl($index),
+                'width' => null,
+                'height' => null,
+                'allowfullscreen' => 'allowfullscreen'
+            ], $attributes);
+
+            $build = [
+                '#type' => 'html_tag',
+                '#tag' => 'iframe',
+                '#value' => '',
+                '#attributes' => $attributes
+            ];
+
+            return \Drupal::service('renderer')->renderPlain($build);
+        }
 
         return false;
     }
@@ -102,8 +117,13 @@ class DrupMediaVideoExternal extends DrupMedia {
      * @return bool|\Drupal\Core\GeneratedUrl|string|null
      */
     protected function getMediaUrl($index = 0) {
-//        if (isset($this->mediasData[$index])) {
-//        }
+        if (isset($this->mediasData[$index])) {
+            /** @var \Drupal\media\Entity\Media $entity */
+            $entity = $this->mediasData[$index]->entity;
+
+            $iframe = $entity->get('field_video_external_iframe')->value;
+            return self::extractIframeUrl($iframe);
+        }
 
         return false;
     }
@@ -150,4 +170,13 @@ class DrupMediaVideoExternal extends DrupMedia {
         return $match[1] ?? null;
     }
 
+    /**
+     * @param string $url
+     *
+     * @return mixed|null
+     */
+    public static function extractYoutubeVideoId(string $url) {
+        preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $url, $match);
+        return $match[1] ?? null;
+    }
 }

@@ -19,7 +19,7 @@ class DrupMedia {
      *
      * @var \Drupal\media\Entity\Media[]
      */
-    protected $mediasList = [];
+    protected $mediasEntity = [];
 
     /**
      * Data for each medias
@@ -60,7 +60,7 @@ class DrupMedia {
 
         if (!empty($medias)) {
             $this->filesFieldName = $this->formatFieldName($fileField);
-            $this->mediasList = $this->formatMedias($medias);
+            $this->mediasEntity = $this->formatMedias($medias);
 
             $this->mediasData = $this->getData();
         }
@@ -71,6 +71,13 @@ class DrupMedia {
      */
     public function isEmpty(): bool {
         return empty($this->mediasData);
+    }
+
+    /**
+     * @return \Drupal\media\Entity\Media[]
+     */
+    public function getMediasEntity() {
+        return $this->mediasEntity;
     }
 
     /**
@@ -164,8 +171,8 @@ class DrupMedia {
     protected function getData(): array {
         $data = [];
 
-        if (!empty($this->mediasList)) {
-            foreach ($this->mediasList as $mediaEntity) {
+        if (!empty($this->getMediasEntity())) {
+            foreach ($this->getMediasEntity() as $mediaEntity) {
                 if ($mediaEntity->hasField($this->filesFieldName)) {
                     /** @var FieldItemBase $fileReferenced */
                     $fileReferenced = $mediaEntity->get($this->filesFieldName)->first();
