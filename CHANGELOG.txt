@@ -1,0 +1,8 @@
+Since 3.1.0 (October 18 2019)
+----------------------------------
+
+# MAJOR CHANGES (needs manual intervention) :
+- DrupBlock::format() changes to DrupTheme::format()
+
+# MINOR CHANGES (may cause issues) :
+- DrupBlockAdminBase.php complete review : may needs to check config values integrity after block save
