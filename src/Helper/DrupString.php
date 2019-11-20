@@ -218,7 +218,7 @@ abstract class DrupString {
                 }
             }
         }
-        if (\in_array('emails', $types)) {
+        if (\in_array('phone_numbers', $types)) {
             if ($phoneNumbers = self::extractPhoneNumbers($string)) {
                 foreach ($phoneNumbers as $phoneNumber) {
                     $string = str_replace($phoneNumber, '<a href="tel:' . self::cleanPhoneNumber($phoneNumber) . '" target="_blank">' . $phoneNumber . '</a>', $string);
