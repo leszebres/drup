@@ -119,7 +119,7 @@ abstract class DrupBlockAdminBase extends BlockBase {
      * @return array
      */
     public function getConfigValues() {
-        return $this->configValues;
+        return !empty($this->configValues) ? $this->configValues : [];
     }
 
     /**
@@ -131,10 +131,12 @@ abstract class DrupBlockAdminBase extends BlockBase {
     }
 
     /**
-     * @param array $values
+     * @param $values
      */
-    public function setConfigValues(array $values) {
-        $this->configValues = array_merge($this->configValues, $values);
+    public function setConfigValues($values) {
+        if (!empty($values) && \is_array($values)) {
+            $this->configValues = array_merge($this->getConfigValues(), $values);
+        }
     }
 
     /**
@@ -154,13 +156,32 @@ abstract class DrupBlockAdminBase extends BlockBase {
      * {@inheritdoc}
      */
     public function blockSubmit($form, FormStateInterface $form_state) {
-        if (isset($this->configValues[$this->ajaxContainer])) {
-            unset($this->configValues[$this->ajaxContainer]['actions']);
+        // Ajax rows values
+        if ($ajaxRowsValues = $this->getConfigValue($this->ajaxContainer)) {
+            unset($ajaxRowsValues['actions']);
+
+            // Enregistrements des données de chaque row
+            if (!empty($ajaxRowsValues)) {
+                foreach ($ajaxRowsValues as $index => $rowValues) {
+                    if (!empty(\array_filter($rowValues['wrapper']))) {
+                        $ajaxRowsValues[$index] = $rowValues['wrapper'] + ['weight' => $rowValues['weight']];
+                    } else {
+                        unset($ajaxRowsValues[$index]);
+                    }
+                }
+
+                // Sort by weight
+                \usort($ajaxRowsValues, static function ($a, $b) {
+                    return (int) $a['weight'] > (int) $b['weight'];
+                });
+            }
+
+            // Save
+            $this->setConfigValue($this->ajaxContainer, $ajaxRowsValues);
         }
 
-        $this->configValues = array_filter($this->configValues);
-
-        $this->config->set($this->configKey, $this->configValues);
+        // Global save
+        $this->config->set($this->configKey, \array_filter($this->getConfigValues()));
         $this->config->save();
     }
 
@@ -200,36 +221,92 @@ abstract class DrupBlockAdminBase extends BlockBase {
      * @param \Drupal\Core\Form\FormStateInterface $form_state
      */
     public function buildAjaxContainer(&$form, FormStateInterface $form_state) {
-        if (!$form_state->has('ajax_count_items')) {
-            $form_state->set('ajax_count_items', is_array($this->configValues[$this->ajaxContainer]) ? count($this->configValues[$this->ajaxContainer]) : 0);
-        }
-        $countItems = &$form_state->get('ajax_count_items');
+        $ajaxItemsValues = $this->getConfigValue($this->ajaxContainer);
 
+        if (!$form_state->has('ajax_items_index')) {
+            $form_state->set('ajax_items_index', $ajaxItemsValues !== null ? \range(0, \count($ajaxItemsValues) - 1) : []);
+        }
+
+        // Main container
         $form['#tree'] = true;
         $form[$this->ajaxContainer] = [
-            '#type' => 'fieldset',
-            '#title' => $this->t('Items'),
+            '#type' => 'table',
+            '#header' => [
+                $this->t('Content'),
+                $this->t('Actions'),
+                $this->t('Weight')
+            ],
+            '#empty' => $this->t('No content found'),
+            '#tabledrag' => [
+                [
+                    'action' => 'order',
+                    'relationship' => 'sibling',
+                    'group' => 'form-item-weight'
+                ]
+            ],
             '#prefix' => '<div id="ajax-items-fieldset-wrapper">',
             '#suffix' => '</div>',
         ];
 
-        for ($i = 0; $i < $countItems; $i++) {
-            $itemIndex = $i;
-            $values = $this->configValues[$this->ajaxContainer][$itemIndex] ?? [];
+        foreach ($form_state->get('ajax_items_index') as $itemIndex => $item) {
+
+        // Construct rows
+        //for ($itemIndex = 0; $itemIndex < $countItems; $itemIndex++) {
+            $values = $ajaxItemsValues[$itemIndex] ?? [];
 
             $form[$this->ajaxContainer][$itemIndex] = [
-                '#type' => 'details',
-                '#collapsible' => true,
-                '#open' => empty($values),
-                '#title' => $this->t('Item') . ' #' . ($i + 1)
+                '#type' => 'container',
+                '#attributes' => [
+                    'class' => ['draggable']
+                ]
             ];
-            $this->setAjaxRow($form[$this->ajaxContainer][$itemIndex], $values);
+            $form[$this->ajaxContainer][$itemIndex]['wrapper'] = [
+                '#type' => 'container',
+                '#title' => $this->t('Item') . ' #' . ($itemIndex + 1),
+            ];
+
+            // Populate each row with values
+            $this->setAjaxRow($form[$this->ajaxContainer][$itemIndex]['wrapper'], $values);
+
+            // Actions to delete row
+            $form[$this->ajaxContainer][$itemIndex]['actions'] = [
+                '#type' => 'container'
+            ];
+            $form[$this->ajaxContainer][$itemIndex]['actions']['delete'] = [
+                '#type' => 'submit',
+                '#value' => t('Remove'),
+                '#name' => 'op-delete-item-' . $itemIndex,
+                '#submit' => [[$this, 'ajaxRemoveRow']],
+                '#attributes' => [
+                    'data-index' => $itemIndex
+                ],
+                '#ajax' => [
+                    'callback' => [$this, 'ajaxCallback'],
+                    'wrapper' => 'ajax-items-fieldset-wrapper',
+                ]
+            ];
+
+            // Weight
+            $form[$this->ajaxContainer][$itemIndex]['weight'] = [
+                '#type' => 'weight',
+                '#title' => $this->t('Weight'),
+                '#title_display' => 'invisible',
+                '#default_value' => !empty($values['weight']) ? $values['weight'] : 50,
+                '#attributes' => [
+                    'class' => ['form-item-weight']
+                ]
+            ];
         }
 
-        $form[$this->ajaxContainer]['actions'] = [
+        // Main actions
+        $form[$this->ajaxContainer]['actions'] = [];
+        $form[$this->ajaxContainer]['actions']['submits'] = [
             '#type' => 'actions',
+            '#wrapper_attributes' => [
+                'colspan' => \count($form[$this->ajaxContainer]['#header']),
+            ]
         ];
-        $form[$this->ajaxContainer]['actions']['add_item'] = [
+        $form[$this->ajaxContainer]['actions']['submits']['add_item'] = [
             '#type' => 'submit',
             '#value' => t('Add content'),
             '#submit' => [[$this, 'ajaxAddRow']],
@@ -238,17 +315,6 @@ abstract class DrupBlockAdminBase extends BlockBase {
                 'wrapper' => 'ajax-items-fieldset-wrapper',
             ],
         ];
-        if ($countItems > 1) {
-            $form[$this->ajaxContainer]['actions']['remove_item'] = [
-                '#type' => 'submit',
-                '#value' => t('Remove this item'),
-                '#submit' => [[$this, 'ajaxRemoveRow']],
-                '#ajax' => [
-                    'callback' => [$this, 'ajaxCallback'],
-                    'wrapper' => 'ajax-items-fieldset-wrapper',
-                ]
-            ];
-        }
     }
 
     /**
@@ -272,12 +338,13 @@ abstract class DrupBlockAdminBase extends BlockBase {
      * @param \Drupal\Core\Form\FormStateInterface $form_state
      */
     public function ajaxAddRow(array &$form, FormStateInterface $form_state) {
-        $countItems = &$form_state->get('ajax_count_items');
+        $indexes = &$form_state->get('ajax_items_index');
 
-        if ($this->ajaxMaxRows !== -1 && $countItems >= $this->ajaxMaxRows) {
+        if ($this->ajaxMaxRows !== -1 && \count($indexes) >= $this->ajaxMaxRows) {
             \Drupal::messenger()->addWarning($this->t('You can manage only @count items.', ['@count' => $this->ajaxMaxRows]));
         } else {
-            $form_state->set('ajax_count_items', $countItems + 1);
+            // Push new index
+            $indexes[] = null;
         }
 
         $form_state->setRebuild();
@@ -288,10 +355,12 @@ abstract class DrupBlockAdminBase extends BlockBase {
      * @param \Drupal\Core\Form\FormStateInterface $form_state
      */
     public function ajaxRemoveRow(array &$form, FormStateInterface $form_state) {
-        $countItems = &$form_state->get('ajax_count_items');
+        $input = $form_state->getTriggeringElement();
 
-        if ($countItems > 1) {
-            $form_state->set('ajax_count_items', $countItems - 1);
+        // Remove row
+        if (isset($input['#attributes']['data-index'])) {
+            $indexes = &$form_state->get('ajax_items_index');
+            unset($indexes[$input['#attributes']['data-index']]);
         }
 
         $form_state->setRebuild();
