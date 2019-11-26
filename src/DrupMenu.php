@@ -201,20 +201,23 @@ class DrupMenu {
         $menuItems = $menuTreeService->build($tree);
         $menuItems['#cache']['max-age'] = 0;
 
-        $navItems = self::extractActiveTrail($menuItems['#items'], $menuItemsInActiveTrail);
+        $navItems = [];
+        if (isset($menuItems['#items']) && !empty($menuItems['#items'])) {
+            $navItems = self::extractActiveTrail($menuItems['#items'], $menuItemsInActiveTrail);
 
-        if (!empty($navItems)) {
-            array_pop($navItems);
+            if (!empty($navItems)) {
+                array_pop($navItems);
 
-            if ($maxDepth !== null) {
-                $navItems = \array_slice($navItems, count($navItems) - $maxDepth, $maxDepth);
-            }
+                if ($maxDepth !== null) {
+                    $navItems = \array_slice($navItems, count($navItems) - $maxDepth, $maxDepth);
+                }
 
-            if ($loadEntities === true && !empty($menuItemsInActiveTrail)) {
-                foreach ($navItems as $index => $navItem) {
-                    if ($loadEntities && ($entity = DrupUrl::loadEntity($navItem['url']))) {
-                        /** @var ContentEntityBase $entity */
-                        $navItems[$index]['entity'] = $entity;
+                if ($loadEntities === true && !empty($menuItemsInActiveTrail)) {
+                    foreach ($navItems as $index => $navItem) {
+                        if ($loadEntities && ($entity = DrupUrl::loadEntity($navItem['url']))) {
+                            /** @var ContentEntityBase $entity */
+                            $navItems[$index]['entity'] = $entity;
+                        }
                     }
                 }
             }
