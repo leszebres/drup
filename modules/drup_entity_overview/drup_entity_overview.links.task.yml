@@ -1,0 +1,3 @@
+drup_entity_overview.entity_usage:
+  deriver: 'Drupal\drup_entity_overview\Plugin\Derivative\DynamicLocalTasks'
+  weight: 100

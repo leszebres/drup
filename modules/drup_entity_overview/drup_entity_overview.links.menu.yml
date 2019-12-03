@@ -1,0 +1,5 @@
+#drup_entity_overview.entity_usage:
+#  title: 'Find entity Usage'
+#  description: ''
+#  parent: system.admin_structure
+#  route_name: 'drup_entity_overview.entity_usage'

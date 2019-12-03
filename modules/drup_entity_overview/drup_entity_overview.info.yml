@@ -1,0 +1,8 @@
+name: 'Drup Entity Overview'
+type: module
+description: 'Add a task link to each entity tab to find its usage through autocomplete reference fields'
+core: 8.x
+package: 'Drup'
+
+'interface translation project': drup_entity_overview
+'interface translation server pattern': modules/contrib/drup/modules/drup_entity_overview/translations/%project.%language.po

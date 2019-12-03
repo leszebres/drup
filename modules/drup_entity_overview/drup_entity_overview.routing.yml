@@ -1,0 +1,11 @@
+drup_entity_overview.entity_usage:
+  path: '/admin/structure/entity-usage/{entityType}/{entityId}'
+  defaults:
+    _form: '\Drupal\drup_entity_overview\Form\EntityOverviewUsageForm'
+    _title: 'Find entity usage'
+    entityType: null
+    entityId: null
+  requirements:
+    _permission: 'administer drup entity overview usage'
+  options:
+    _admin_route: TRUE
