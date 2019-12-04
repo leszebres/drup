@@ -74,17 +74,19 @@ class DrupLink extends FormElement {
      * @param string $input
      * @param string $target_type
      *
-     * @return null|\Drupal\Core\Url
+     * @return \Drupal\Core\Url|null
      */
     public static function getUrl(string $input, string $target_type = null, $options = []) {
         $url = null;
 
         // Internal Uri
-        if (!empty($target_type) && ($targetId = self::getTargetId($input)) !== false) {
-            $entity = \Drupal::entityTypeManager()->getStorage($target_type)->load($targetId);
+        if (!empty($target_type)) {
+            if (($targetId = EntityAutocomplete::extractEntityIdFromAutocompleteInput($input)) !== false) {
+                $entity = \Drupal::entityTypeManager()->getStorage($target_type)->load($targetId);
 
-            if ($entity !== null) {
-                $url = $entity->toUrl('canonical', $options);
+                if ($entity !== null) {
+                    $url = $entity->toUrl('canonical', $options);
+                }
             }
         }
         // External Uri
@@ -95,25 +97,4 @@ class DrupLink extends FormElement {
 
         return $url;
     }
-
-    /**
-     * Extract target id from input string
-     *
-     * @param string $input
-     *
-     * @return bool|string
-     */
-    public static function getTargetId(string $input) {
-        if (!empty($input)) {
-            $matches = [];
-            preg_match('/\s\((\d)\)/', $input, $matches);
-
-            if (!empty($matches)) {
-                return (string) $matches[1];
-            }
-        }
-
-        return false;
-    }
-
 }
