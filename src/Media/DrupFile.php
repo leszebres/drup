@@ -273,7 +273,7 @@ class DrupFile {
             $fid = current($fid);
         }
 
-        if (($file = File::load($fid)) && $file instanceof File) {
+        if (($file = File::load($fid)) && $file instanceof File && $file->isTemporary()) {
             $file->setPermanent();
             $file->save();
 
