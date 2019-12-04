@@ -80,13 +80,11 @@ class DrupLink extends FormElement {
         $url = null;
 
         // Internal Uri
-        if (!empty($target_type)) {
-            if (($targetId = EntityAutocomplete::extractEntityIdFromAutocompleteInput($input)) !== false) {
-                $entity = \Drupal::entityTypeManager()->getStorage($target_type)->load($targetId);
+        if (!empty($target_type) && $targetId = EntityAutocomplete::extractEntityIdFromAutocompleteInput($input)) {
+            $entity = \Drupal::entityTypeManager()->getStorage($target_type)->load($targetId);
 
-                if ($entity !== null) {
-                    $url = $entity->toUrl('canonical', $options);
-                }
+            if ($entity !== null) {
+                $url = $entity->toUrl('canonical', $options);
             }
         }
         // External Uri
