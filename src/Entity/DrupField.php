@@ -3,7 +3,7 @@
 namespace Drupal\drup\Entity;
 
 use Drupal\Core\Datetime\DrupalDateTime;
-use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Entity\EntityBase;
 use Drupal\drup\Helper\DrupString;
 use Drupal\field\Entity\FieldConfig;
 
@@ -16,21 +16,21 @@ use Drupal\field\Entity\FieldConfig;
 class DrupField {
 
     /**
-     * @var FieldableEntityInterface
+     * @var EntityBase
      */
     protected $entity;
 
     /**
      * DrupField constructor.
      *
-     * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
+     * @param EntityBase $entity
      */
-    public function __construct(FieldableEntityInterface $entity) {
+    public function __construct(EntityBase $entity) {
         $this->entity = $entity;
     }
 
     /**
-     * @return \Drupal\Core\Entity\FieldableEntityInterface
+     * @return EntityBase
      */
     public function entity() {
         return $this->entity;
