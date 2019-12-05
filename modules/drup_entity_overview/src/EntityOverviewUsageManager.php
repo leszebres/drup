@@ -158,6 +158,7 @@ class EntityOverviewUsageManager {
                             'entity_type' => $entityType,
                             'entity_bundle' => $entityBundle,
                             'field_name' => $fieldName,
+                            'field_label' => $fieldConfig->getLabel(),
                             'field_entity_target_info' => [
                                 'entity_type' => $targetType,
                                 'bundles' => $targetBundles

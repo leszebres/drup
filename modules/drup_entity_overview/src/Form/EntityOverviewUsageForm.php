@@ -181,6 +181,10 @@ class EntityOverviewUsageForm extends FormBase {
                         if ($entity->getEntityType()->id() === 'paragraph') {
                             /** @var \Drupal\Core\Entity\ContentEntityBase $parentEntity */
                             $parentEntity = $entity->getParentEntity();
+
+                            if ($parentEntity === null) {
+                                continue;
+                            }
                         }
 
                         $bundle = $entity->bundle();
