@@ -1,0 +1,5 @@
+form:
+  version: '1.0.0'
+  css:
+    theme:
+      assets/form.css: {media: 'screen'}

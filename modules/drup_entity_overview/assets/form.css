@@ -1,0 +1,13 @@
+.drup-entity-overview-usage-form {
+
+}
+.drup-entity-overview-usage-form .views-exposed-form > .form-item,
+.drup-entity-overview-usage-form .views-exposed-form > .form-actions {
+    margin: 0.75rem 0.5rem 0 0;
+}
+.drup-entity-overview-usage-form .views-exposed-form > .form-actions .form-submit {
+    margin: 0;
+}
+.drup-entity-overview-usage-form .claro-autocomplete {
+    margin: 0;
+}

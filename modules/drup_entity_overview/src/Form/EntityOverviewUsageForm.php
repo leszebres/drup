@@ -69,6 +69,7 @@ class EntityOverviewUsageForm extends FormBase {
         $form['#suffix'] = '</div>';
 
         $form['#attached']['library'][] = 'views/views.module';
+        $form['#attached']['library'][] = 'drup_entity_overview/form';
 
         $form['header'] = [
             '#type' => 'container',
@@ -131,7 +132,10 @@ class EntityOverviewUsageForm extends FormBase {
                 '#default_value' => $entity,
                 '#required' => true
             ];
-            $form['header']['submit'] = [
+            $form['header']['actions'] = [
+                '#type'  => 'actions'
+            ];
+            $form['header']['actions']['submit'] = [
                 '#type'  => 'submit',
                 '#value' => $this->t('Search'),
                 '#attributes' => []
