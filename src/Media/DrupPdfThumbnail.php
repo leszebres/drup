@@ -32,6 +32,13 @@ class DrupPdfThumbnail {
     ];
 
     /**
+     * @var array
+     */
+    protected static $mimeTypesAllowed = [
+        'application/pdf'
+    ];
+
+    /**
      * Config factory.
      *
      * @var \Drupal\Core\Config\ConfigFactoryInterface
@@ -97,6 +104,10 @@ class DrupPdfThumbnail {
      * @return string|null
      */
     public function getPDFPreview(File $file) {
+        if (!$this->isMimeTypeAllowed($file)) {
+            return null;
+        }
+
         $destination_uri = $this->getDestinationURI($file);
 
         // Check if a preview already exists.
@@ -139,8 +150,8 @@ class DrupPdfThumbnail {
      */
     public function updatePDFPreview(File $file) {
         $original = $file->original;
-        if ($file->getFileUri() !== $original->getFileUri()
-            || filesize($file->getFileUri()) !== filesize($original->getFileUri())) {
+
+        if ($file->getFileUri() !== $original->getFileUri() || filesize($file->getFileUri()) !== filesize($original->getFileUri())) {
             $this->deletePDFPreview($original);
         }
     }
@@ -192,7 +203,7 @@ class DrupPdfThumbnail {
         //$config = $this->configFactory->get('pdfpreview.settings');
         $langcode = $this->languageManager->getCurrentLanguage()->getId();
         //$output_path = file_default_scheme() . '://' . $config->get('path');
-        $output_path = file_default_scheme() . '://' . self::$directory;
+        $output_path = \Drupal::config('system.file')->get('default_scheme') . '://' . self::$directory;
 
         //if ($config->get('filenames') === 'human') {
             $filename = $this->fileSystem->basename($file->getFileUri(), '.pdf');
@@ -224,4 +235,12 @@ class DrupPdfThumbnail {
         return self::$config[$key] ?? null;
     }
 
+    /**
+     * @param \Drupal\file\Entity\File $file
+     *
+     * @return bool
+     */
+    protected function isMimeTypeAllowed(File $file) {
+        return ($type = $file->getMimeType()) && \in_array($type, self::$mimeTypesAllowed);
+    }
 }
