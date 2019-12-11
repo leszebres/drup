@@ -206,7 +206,11 @@ class DrupMenu {
             $navItems = self::extractActiveTrail($menuItems['#items'], $menuItemsInActiveTrail);
 
             if (!empty($navItems)) {
-                array_pop($navItems);
+                // Remove last item if it matches with current page
+                $lastNavItem = end($navItems);
+                if (array_search($lastNavItem['original_link']->getPluginId(), array_keys($activeTrail)) === 0) {
+                    array_pop($navItems);
+                }
 
                 if ($maxDepth !== null) {
                     $navItems = \array_slice($navItems, count($navItems) - $maxDepth, $maxDepth);
