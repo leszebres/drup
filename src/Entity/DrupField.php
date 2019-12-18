@@ -127,6 +127,20 @@ class DrupField {
     /**
      * @param string $field
      *
+     * @return array|mixed
+     */
+    public function getListTextLabels(string $field) {
+        if ($values = $this->getValues($field, 'value')) {
+            $allowedValues = $this->get($field)->getSetting('allowed_values');
+            return array_intersect_key($allowedValues, array_flip($values));
+        }
+
+        return [];
+    }
+
+    /**
+     * @param string $field
+     *
      * @return array|\Drupal\Core\Entity\EntityInterface[]
      */
     public function getReferencedEntities(string $field) {
