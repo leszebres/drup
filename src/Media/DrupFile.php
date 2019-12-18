@@ -312,16 +312,22 @@ class DrupFile {
     /**
      * Chemin d'un fichier d'un thème
      *
-     * @param string $relativePath
-     * @param string $theme
+     * @param string $relative_path Chemin relatif au thème du fichier
+     * @param string|null $theme Nom du thème.
+     * @param bool $absolute Formattage de l'url en absolu ou relatif. /!\ Les urls absolues sont mal supportées avec les htpasswd
      *
      * @return string
      */
-    public static function getThemeFileUri(string $relativePath, string $theme = null): string {
+    public static function getThemeFileUri(string $relative_path, string $theme = null, bool $absolute = true): string {
         $themeHandler = \Drupal::service('theme_handler');
         $theme = $theme ?? $themeHandler->getDefault();
 
-        return \Drupal::request()->getUriForPath('/' . $themeHandler->getTheme($theme)->getPath() . $relativePath);
+        if ($relative_path[0] !== '/') {
+            $relative_path = '/' . $relative_path;
+        }
+
+        $url = $themeHandler->getTheme($theme)->getPath() . $relative_path;
+        return $absolute ? \Drupal::request()->getUriForPath('/' . $url) : ('./' . $url);
     }
 
     /**
