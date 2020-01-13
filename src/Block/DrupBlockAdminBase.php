@@ -38,7 +38,7 @@ abstract class DrupBlockAdminBase extends BlockBase {
      * Les données du bloc sont contextualisées par rapport à la page où le bloc se trouve
      * (pour notamment pouvoir placer un même bloc sur différentes pages avec différentes valeurs)
      *
-     * @var
+     * @var string
      */
     protected $configContextValue;
 
@@ -107,6 +107,8 @@ abstract class DrupBlockAdminBase extends BlockBase {
     }
 
     /**
+     * Retourne une valeur enregistrée dans la config du block
+     *
      * @param string $key
      *
      * @return mixed|null
@@ -116,6 +118,8 @@ abstract class DrupBlockAdminBase extends BlockBase {
     }
 
     /**
+     * Retourne l'ensemble des valeurs enregistrées dans la config du block
+     *
      * @return array
      */
     public function getConfigValues() {
@@ -123,6 +127,8 @@ abstract class DrupBlockAdminBase extends BlockBase {
     }
 
     /**
+     * Applique une config du block
+     *
      * @param string $key
      * @param $value
      */
@@ -131,6 +137,8 @@ abstract class DrupBlockAdminBase extends BlockBase {
     }
 
     /**
+     * Applique un ensemble de configs du block
+     *
      * @param $values
      */
     public function setConfigValues($values) {
@@ -156,8 +164,9 @@ abstract class DrupBlockAdminBase extends BlockBase {
      * {@inheritdoc}
      */
     public function blockSubmit($form, FormStateInterface $form_state) {
-        // Ajax rows values
+        // spécificité pour le repeater ajax
         if ($ajaxRowsValues = $this->getConfigValue($this->ajaxContainer)) {
+            $ajaxRowsValues = $ajaxRowsValues['values'];
             unset($ajaxRowsValues['actions']);
 
             // Enregistrements des données de chaque row
@@ -229,50 +238,53 @@ abstract class DrupBlockAdminBase extends BlockBase {
 
         // Main container
         $form['#tree'] = true;
+
+        // Conteneur + Table avec des rows ajaxifiées
         $form[$this->ajaxContainer] = [
-            '#type' => 'table',
-            '#header' => [
-                $this->t('Content'),
-                $this->t('Actions'),
-                $this->t('Weight')
-            ],
-            '#empty' => $this->t('No content found'),
-            '#tabledrag' => [
-                [
-                    'action' => 'order',
-                    'relationship' => 'sibling',
-                    'group' => 'form-item-weight'
-                ]
-            ],
-            '#prefix' => '<div id="ajax-items-fieldset-wrapper">',
-            '#suffix' => '</div>',
+            '#type' => 'container', // ajout d'un conteneur intermédiaire permet de faire des #states sur $this->ajaxContainer
+            'values' => [
+                '#type' => 'table',
+                '#header' => [
+                    $this->t('Content'),
+                    $this->t('Actions'),
+                    $this->t('Weight')
+                ],
+                '#empty' => $this->t('No content found'),
+                '#tabledrag' => [
+                    [
+                        'action' => 'order',
+                        'relationship' => 'sibling',
+                        'group' => 'form-item-weight'
+                    ]
+                ],
+                '#prefix' => '<div id="ajax-items-fieldset-wrapper">',
+                '#suffix' => '</div>',
+            ]
         ];
 
-        foreach ($form_state->get('ajax_items_index') as $itemIndex => $item) {
-
         // Construct rows
-        //for ($itemIndex = 0; $itemIndex < $countItems; $itemIndex++) {
+        foreach ($form_state->get('ajax_items_index') as $itemIndex => $item) {
             $values = $ajaxItemsValues[$itemIndex] ?? [];
 
-            $form[$this->ajaxContainer][$itemIndex] = [
+            $form[$this->ajaxContainer]['values'][$itemIndex] = [
                 '#type' => 'container',
                 '#attributes' => [
                     'class' => ['draggable']
                 ]
             ];
-            $form[$this->ajaxContainer][$itemIndex]['wrapper'] = [
+            $form[$this->ajaxContainer]['values'][$itemIndex]['wrapper'] = [
                 '#type' => 'container',
                 '#title' => $this->t('Item') . ' #' . ($itemIndex + 1),
             ];
 
             // Populate each row with values
-            $this->setAjaxRow($form[$this->ajaxContainer][$itemIndex]['wrapper'], $values);
+            $this->setAjaxRow($form[$this->ajaxContainer]['values'][$itemIndex]['wrapper'], $values);
 
             // Actions to delete row
-            $form[$this->ajaxContainer][$itemIndex]['actions'] = [
+            $form[$this->ajaxContainer]['values'][$itemIndex]['actions'] = [
                 '#type' => 'container'
             ];
-            $form[$this->ajaxContainer][$itemIndex]['actions']['delete'] = [
+            $form[$this->ajaxContainer]['values'][$itemIndex]['actions']['delete'] = [
                 '#type' => 'submit',
                 '#value' => t('Remove'),
                 '#name' => 'op-delete-item-' . $itemIndex,
@@ -287,7 +299,7 @@ abstract class DrupBlockAdminBase extends BlockBase {
             ];
 
             // Weight
-            $form[$this->ajaxContainer][$itemIndex]['weight'] = [
+            $form[$this->ajaxContainer]['values'][$itemIndex]['weight'] = [
                 '#type' => 'weight',
                 '#title' => $this->t('Weight'),
                 '#title_display' => 'invisible',
@@ -299,14 +311,14 @@ abstract class DrupBlockAdminBase extends BlockBase {
         }
 
         // Main actions
-        $form[$this->ajaxContainer]['actions'] = [];
-        $form[$this->ajaxContainer]['actions']['submits'] = [
+        $form[$this->ajaxContainer]['values']['actions'] = [];
+        $form[$this->ajaxContainer]['values']['actions']['submits'] = [
             '#type' => 'actions',
             '#wrapper_attributes' => [
-                'colspan' => \count($form[$this->ajaxContainer]['#header']),
+                'colspan' => \count($form[$this->ajaxContainer]['values']['#header']),
             ]
         ];
-        $form[$this->ajaxContainer]['actions']['submits']['add_item'] = [
+        $form[$this->ajaxContainer]['values']['actions']['submits']['add_item'] = [
             '#type' => 'submit',
             '#value' => t('Add content'),
             '#submit' => [[$this, 'ajaxAddRow']],
