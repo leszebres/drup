@@ -1,0 +1,4 @@
+Manually reported patches :
+
+- https://www.drupal.org/project/views_ajax_history/issues/3106597 : https://www.drupal.org/files/issues/2020-01-15/drupal_9_views_ajax_history_3106597.patch
+- https://www.drupal.org/project/views_ajax_history/issues/3090512 : https://www.drupal.org/files/issues/2019-10-28/13327370-views_ajax_history_reload.patch

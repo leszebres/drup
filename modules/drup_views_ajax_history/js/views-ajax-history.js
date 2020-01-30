@@ -34,6 +34,7 @@
       var $body = $('body').once('views-ajax-history-first-page-load');
       if ($body.length) {
         drupalSettings.viewsAjaxHistory.onloadPageItem = drupalSettings.viewsAjaxHistory.renderPageItem;
+          $(window).bind('popstate', loadView);
       }
     }
   };
@@ -59,6 +60,12 @@
         if (pair[0] != 'q' && pair[1]) {
           key = decodeURIComponent(pair[0].replace(/\+/g, ' '));
           value = decodeURIComponent(pair[1].replace(/\+/g, ' '));
+          // It may happen that field name ends with [] with text between them e.g.
+          // [0], [1]. Let's convert them to []. One example is when we build URL query
+          // with URL query builder.
+          if (/\[(.+)\]/.test(key)) {
+            key = key.replace(/\[(.+)\]/, '[]');
+          }
           // Field name ends with [], it's multivalues.
           if (/\[\]$/.test(key)) {
             if (!(key in args)) {
@@ -151,8 +158,6 @@
     delete historyOptions.complete;
     delete historyOptions.success;
 
-    // Store the actual view's dom id.
-    drupalSettings.viewsAjaxHistory.lastViewDomID = options.data.view_dom_id;
     $(window).unbind('popstate', loadView);
     history.pushState(historyOptions, document.title, cleanURL(url, options.data));
     $(window).bind('popstate', loadView);
@@ -162,11 +167,12 @@
    * Make an AJAX request to update the view when navigating back and forth.
    */
   var loadView = function () {
+      var view_dom_id = getViewDomId();
     var options;
 
     // This should be the first loaded page, so init the options object.
     if (history.state === null) {
-      var viewsAjaxSettingsKey = 'views_dom_id:' + drupalSettings.viewsAjaxHistory.lastViewDomID;
+        var viewsAjaxSettingsKey = 'views_dom_id:' + view_dom_id;
       if (drupalSettings.views.ajaxViews.hasOwnProperty(viewsAjaxSettingsKey)) {
         var viewsAjaxSettings = drupalSettings.views.ajaxViews[viewsAjaxSettingsKey];
         viewsAjaxSettings.page = drupalSettings.viewsAjaxHistory.onloadPageItem;
@@ -174,11 +180,25 @@
           data: viewsAjaxSettings,
           url: drupalSettings.views.ajax_path
         };
+        // On first loaded page, url can have filters passed in query. They are
+        // present in window.location.search. Let's add them to initial filters,
+        // when getting back to first loaded page.
+        $.each(parseQueryString(window.location.search), function(filter_name) {
+          if (!options.data.hasOwnProperty(filter_name)) {
+            options.data[filter_name] = this;
+          }
+        });
       }
     }
     else {
       options = history.state;
     }
+
+    // When page was reloaded, view_dom_id stored in history might be outdated
+    // (it's refreshed on every page reload). Make sure, that current dom_id is
+    // used.
+    options.data.view_dom_id = view_dom_id;
+
 
     // Drupal's AJAX options.
     var settings = $.extend({
@@ -192,6 +212,34 @@
     var viewsAjaxSubmit = Drupal.ajax(settings);
     // Trigger ajax call.
     viewsAjaxSubmit.execute();
+  };
+
+  /**
+   * Get current dom_id for the view, based on its name and display ID.
+   *
+   * When doing AJAX calls, dom_id don't change. But on page refresh or
+   * getting back to view from other pages dom_id changes. And browser history
+   * contains old dom_id. We can update it and get current dom_id, based on
+   * view_name and view_display_id.
+   *
+   * @return string|null
+   *   Current view dom_id.
+   */
+  var getViewDomId = function () {
+    var view_dom_id = null;
+
+    var views_ajax_history = drupalSettings.viewsAjaxHistory;
+    // Get list of available views and look for view matching current view name
+    // and display id. Get dom_id of it.
+    $.each(drupalSettings.views.ajaxViews, function() {
+      if (views_ajax_history.viewName === this.view_name
+        && views_ajax_history.viewDisplayId === this.view_display_id) {
+        view_dom_id = this.view_dom_id;
+        return false;
+      }
+    });
+
+    return view_dom_id;
   };
 
   /**

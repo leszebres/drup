@@ -14,7 +14,9 @@ function drup_views_ajax_history_views_pre_render(ViewExecutable $view) {
     if ($view->ajaxEnabled() && empty($view->is_attachment) && empty($view->live_preview) && !empty($view->display_handler->getExtenders()['drup_views_ajax_history']) && $view->display_handler->getExtenders()['drup_views_ajax_history']->options['history']) {
         $view->element['#attached']['library'][] = 'drup_views_ajax_history/ajax-history';
         $view->element['#attached']['drupalSettings']['viewsAjaxHistory'] = [
-            'renderPageItem' => pager_find_page(),
+          'renderPageItem' => \Drupal::service('pager.parameters')->findPage(),
+          'viewName' => $view->id(),
+          'viewDisplayId' => $view->current_display,
         ];
         $view->element['#cache']['contexts'][] = 'url.query_args.pagers';
     }
