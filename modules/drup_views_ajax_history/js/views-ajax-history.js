@@ -63,7 +63,8 @@
           // It may happen that field name ends with [] with text between them e.g.
           // [0], [1]. Let's convert them to []. One example is when we build URL query
           // with URL query builder.
-          if (/\[(.+)\]/.test(key)) {
+          //if (/\[(.+)\]/.test(key)) {
+          if (/\[(\d+)\]/.test(key)) { // @custom change !
             key = key.replace(/\[(.+)\]/, '[]');
           }
           // Field name ends with [], it's multivalues.
