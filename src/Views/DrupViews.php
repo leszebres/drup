@@ -123,14 +123,18 @@ class DrupViews {
     /**
      * @param $viewId
      * @param $viewDisplayId
-     * @param array $arguments
+     * @param array $arguments View args
+     * @param null $additionalData Set custom data to $view for preprocess_view treatments
      *
      * @return array|null
      */
-    public static function buildView($viewId, $viewDisplayId, $arguments = []) {
+    public static function buildView($viewId, $viewDisplayId, $arguments = [], $additionalData = null) {
         $view = self::getView($viewId, $viewDisplayId, $arguments);
 
         if ($view instanceof ViewExecutable) {
+            if ($additionalData !== null) {
+                $view->drup_custom_data = $additionalData;
+            }
             $view->preview();
 
             if (!empty($view->result)) {
@@ -144,14 +148,18 @@ class DrupViews {
     /**
      * @param $viewId
      * @param $viewDisplayId
-     * @param array $arguments
+     * @param array $arguments View args
+     * @param null $additionalData Set custom data to $view for preprocess_view treatments
      *
-     * @return string|null
+     * @return |null
      */
-    public static function renderView($viewId, $viewDisplayId, $arguments = []) {
+    public static function renderView($viewId, $viewDisplayId, $arguments = [], $additionalData = null) {
         $view = self::getView($viewId, $viewDisplayId, $arguments);
 
         if ($view instanceof ViewExecutable) {
+            if ($additionalData !== null) {
+                $view->drup_custom_data = $additionalData;
+            }
             $view->execute();
 
             if (!empty($view->result)) {
