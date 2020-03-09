@@ -3,6 +3,7 @@
 namespace Drupal\drup\Helper;
 
 use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Core\Routing\RouteProvider;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -80,6 +81,40 @@ abstract class DrupRequest {
      */
     public static function getRouteName() {
         return \Drupal::routeMatch()->getRouteName();
+    }
+
+    /**
+     * Nom de la route de la page courante hors contexte ajax (ex : dans un view ajax)
+     *
+     * @return string|null
+     */
+    public static function getRefererRouteName() {
+        $previousUrl = \Drupal::request()->server->get('HTTP_REFERER');
+        $fakeRequest = Request::create($previousUrl);
+
+        /** @var \Drupal\Core\Url $url */
+        if ($url = \Drupal::service('path.validator')->getUrlIfValid($fakeRequest->getRequestUri())) {
+            return $url->getRouteName();
+        }
+
+        return null;
+    }
+
+    /**
+     * Title de la route de la page courante hors contexte ajax (ex : dans un view ajax)
+     *
+     * @return string|null
+     */
+    public static function getRefererTitle() {
+        $previousUrl = \Drupal::request()->server->get('HTTP_REFERER');
+        $fakeRequest = Request::create($previousUrl);
+
+        /** @var \Symfony\Component\Routing\Route $route */
+        if ($route = \Drupal::service('router.route_provider')->getRouteByName('view.search.page')) {
+            return $route->hasDefault('_title') ? $route->getDefault('_title') : null;
+        }
+
+        return null;
     }
 
     /**
