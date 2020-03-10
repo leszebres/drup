@@ -2,12 +2,14 @@
 
 namespace Drupal\drup_entity_overview;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\field\Entity\FieldConfig;
+use Drupal\paragraphs\Entity\Paragraph;
 
 /**
  * Class EntityOverviewUsageManager
@@ -112,6 +114,25 @@ class EntityOverviewUsageManager {
         $entities = array_filter($entities);
 
         return $entities;
+    }
+
+    /**
+     * @param \Drupal\paragraphs\Entity\Paragraph $paragraph
+     *
+     * @return \Drupal\Core\Entity\ContentEntityInterface|null
+     */
+    public static function getParagraphParentEntity(Paragraph $paragraph) {
+        if (($parent = $paragraph->getParentEntity()) && $parent->hasField($paragraph->get('parent_field_name')->value)) {
+            $parentField = $paragraph->get('parent_field_name')->value;
+            $field = $parent->get($parentField);
+
+            foreach ($field as $key => $value) {
+                if ($value->entity->id() === $paragraph->id()) {
+                    return $parent;
+                }
+            }
+        }
+        return null;
     }
 
     /**
