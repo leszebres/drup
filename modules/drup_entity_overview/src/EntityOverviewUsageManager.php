@@ -2,7 +2,6 @@
 
 namespace Drupal\drup_entity_overview;
 
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -62,10 +61,12 @@ class EntityOverviewUsageManager {
         $this->entityTypeManager = $entityTypeManager;
         $this->entityFieldManager = $entityFieldManager;
 
-        $this->fieldsInfo = $this->getConfig();
+        $this->fieldsInfo = $this->loadFieldInfo();
     }
 
     /**
+     * L'ensemble des champs de type 'entity_reference'
+     *
      * @return array
      */
     public function getFields(): array {
@@ -73,25 +74,27 @@ class EntityOverviewUsageManager {
     }
 
     /**
+     * L'ensemble des champs de type 'entity_reference' référençant un type d'entité particulier
+     *
      * @param string $type
-     * @param string|null $bundle
+     * @param string $bundle
      *
      * @return array
      */
     public function getFieldsByEntityInfo(string $type, string $bundle): array {
-        if (is_string($bundle)) {
-            return $this->getFields()[$type . '.' . $bundle] ?? [];
-        }
+        return $this->getFields()[$type . '.' . $bundle] ?? [];
     }
 
     /**
+     * L'ensemble des entités référençant une entitié donnée
+     *
      * @param string $entityType
      * @param string $entityBundle
      * @param string $entityId
      *
      * @return array
      */
-    public function getReferencingEntities(string $entityType, $entityBundle, string $entityId): array {
+    public function getReferences(string $entityType, string $entityBundle, string $entityId): array {
         $entities = [];
 
         if ($fields = $this->getFieldsByEntityInfo($entityType, $entityBundle)) {
@@ -99,10 +102,10 @@ class EntityOverviewUsageManager {
                 if (!isset($entities[$fieldInfo['entity_type']])) {
                     $entities[$fieldInfo['entity_type']] = [];
                 }
-                $query = $this->entityTypeManager->getStorage($fieldInfo['entity_type'])->getQuery()
-                    ->condition($fieldInfo['field_name'], $entityId);
 
+                $query = $this->entityTypeManager->getStorage($fieldInfo['entity_type'])->getQuery()->condition($fieldInfo['field_name'], $entityId);
                 $entitiesId = $query->execute();
+
                 if (!empty($entitiesId) && ($entityTypeInterface = $this->entityTypeManager->getDefinition($fieldInfo['entity_type']))) {
                     /** @var ContentEntityInterface $storageHandler */
                     $storageHandler = $entityTypeInterface->getClass();
@@ -113,7 +116,42 @@ class EntityOverviewUsageManager {
 
         $entities = array_filter($entities);
 
+        // @todo cache
+
         return $entities;
+    }
+
+    /**
+     * @param string $entityType
+     * @param string $entityBundle
+     * @param string $entityId
+     *
+     * @return bool
+     */
+    public function isReferenced(string $entityType, string $entityBundle, string $entityId) {
+        return !empty($this->getReferences($entityType, $entityBundle, $entityId));
+    }
+
+    /**
+     * @param string $entityType
+     * @param string $entityBundle
+     * @param string $entityId
+     *
+     * @return int
+     *
+     * @todo Only published ? Paragraphs ?
+     */
+    public function countReferences(string $entityType, string $entityBundle, string $entityId) {
+        $count = 0;
+        $references = $this->getReferences($entityType, $entityBundle, $entityId);
+
+        if (!empty($references)) {
+            foreach ($references as $referencesByEntityType) {
+                $count += count($referencesByEntityType);
+            }
+        }
+
+        return $count;
     }
 
     /**
@@ -138,12 +176,12 @@ class EntityOverviewUsageManager {
     /**
      * @return array
      */
-    protected function getConfig(): array {
+    protected function loadFieldInfo(): array {
         if ($cache = $this->cacheBackend->get(self::$configCid)) {
             return $cache->data;
         }
 
-        $data = $this->buildConfig();
+        $data = $this->buildFieldInfo();
         $this->cacheBackend->set(self::$configCid, $data);
 
         return $data;
@@ -152,7 +190,7 @@ class EntityOverviewUsageManager {
     /**
      * @return array
      */
-    protected function buildConfig(): array {
+    protected function buildFieldInfo(): array {
         // Fields with Entity Reference Type, grouped by entities type
         $data = $this->entityFieldManager->getFieldMapByFieldType('entity_reference');
         $fields = [];

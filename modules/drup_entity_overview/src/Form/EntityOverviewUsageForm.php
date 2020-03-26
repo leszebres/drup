@@ -165,7 +165,7 @@ class EntityOverviewUsageForm extends FormBase {
         ];
 
         if ($entity = $this->loadEntity($form_state->getValue('entity_type'), $form_state->getValue('entity'))) {
-            if ($referencedEntities = $this->entityOverviewUsageManager->getReferencingEntities($entity->getEntityTypeId(), $entity->bundle(), $entity->id())) {
+            if ($referencedEntities = $this->entityOverviewUsageManager->getReferences($entity->getEntityTypeId(), $entity->bundle(), $entity->id())) {
                 $defaultTable = [
                     '#type' => 'table',
                     '#header' => [

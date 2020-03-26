@@ -4,3 +4,23 @@
  * @file
  * Contains drup_entity_overview.module.
  */
+
+/**
+ * Implements hook_views_data().
+ */
+function drup_entity_overview_views_data() {
+    $data['views']['table']['group'] = t('Custom Global');
+    $data['views']['table']['join'] = [
+        // #global is a special flag which allows a table to appear all the time.
+        '#global' => [],
+    ];
+
+    $data['views']['entity_overview_usage_field'] = [
+        'title' => t('Entity Usage Overview'),
+        'help' => t('Displays information about the current entity usage'),
+        'field' => [
+            'id' => 'entity_overview_usage_field',
+        ],
+    ];
+    return $data;
+}
