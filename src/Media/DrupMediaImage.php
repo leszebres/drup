@@ -148,7 +148,12 @@ class DrupMediaImage extends DrupMedia {
                     'alt' => $this->mediasData[$index]->field->get('alt')->getString(),
                     'title' => $this->mediasData[$index]->field->get('title')->getString(),
                     'name' => $this->mediasData[$index]->entity->getName(),
-                    'legend' => $this->getLegend($index)
+                    'size' => [
+                        'width' => $drupFileImage->getImage()->getWidth(),
+                        'height' => $drupFileImage->getImage()->getHeight()
+                    ],
+                    'legend' => $this->getLegend($index),
+                    '_entities' => $this->mediasData[$index]
                 ];
             }
         }

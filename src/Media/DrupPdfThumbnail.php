@@ -27,7 +27,7 @@ class DrupPdfThumbnail {
      */
     protected static $config = [
         'extension' => 'jpg',
-        'size' => '1920x1080',
+        'size' => '1280x768',
         'quality' => 100
     ];
 

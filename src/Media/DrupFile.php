@@ -359,4 +359,10 @@ class DrupFile {
         return (object) $options;
     }
 
+    /**
+     * @return \Drupal\Core\Image\Image
+     */
+    public function getImage(): \Drupal\Core\Image\Image {
+        return $this->image;
+    }
 }
