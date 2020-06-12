@@ -95,6 +95,13 @@ class DrupFile {
             '#height' => $this->image->getHeight(),
         ];
 
+        if (array_key_exists('alt', $attributes)) {
+            $rendererOptions['#alt'] = $attributes['alt'];
+        }
+        if (array_key_exists('title', $attributes)) {
+            $rendererOptions['#title'] = $attributes['title'];
+        }
+
         // Render as image style
         if (!empty($style)) {
             if ($imageStyle = self::getImageStyleEntity($style, true)) {
@@ -124,7 +131,7 @@ class DrupFile {
         }
 
         if (!empty($attributes)) {
-            $rendererOptions['#attributes'] = array_merge_recursive($rendererOptions['#attributes'], $attributes);
+            $rendererOptions['#attributes'] = array_merge_recursive($rendererOptions['#attributes'], array_filter($attributes));
         }
 
         $renderer = \Drupal::service('renderer');
@@ -153,6 +160,13 @@ class DrupFile {
         if ($image->isValid()) {
             $rendererOptions['#width'] = $image->getWidth();
             $rendererOptions['#height'] = $image->getHeight();
+        }
+
+        if (array_key_exists('alt', $attributes)) {
+            $rendererOptions['#alt'] = $attributes['alt'];
+        }
+        if (array_key_exists('title', $attributes)) {
+            $rendererOptions['#title'] = $attributes['title'];
         }
 
         // Render as image style

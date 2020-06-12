@@ -238,12 +238,12 @@ abstract class DrupSEO {
 
                 if ($drupField !== false) {
                     if ($name === 'thumbnail:url') {
-                        if ($thumbnailUrl = self::getNodeThumbnailUrl($drupField)) {
+                        if ($thumbnailUrl = static::getNodeThumbnailUrl($drupField)) {
                             $replacements[$original] = $thumbnailUrl;
                         }
 
                     } elseif ($name === 'thumbnail:type') {
-                        if ($thumbnailUrl = self::getNodeThumbnailUrl($drupField)) {
+                        if ($thumbnailUrl = static::getNodeThumbnailUrl($drupField)) {
                             $extension = pathinfo($thumbnailUrl, PATHINFO_EXTENSION);
                             $extension = current(explode('?', $extension));
                             $replacements[$original] = 'image/' . $extension;

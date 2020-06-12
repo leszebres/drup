@@ -199,7 +199,7 @@ class DrupMedia {
      * @return \Drupal\Core\Entity\EntityInterface|Media|null
      */
     protected function loadMedia($mid) {
-        if (($mediaEntity = Media::load($mid)) && $mediaEntity instanceof Media) {
+        if (is_numeric($mid) && ($mediaEntity = Media::load($mid)) && $mediaEntity instanceof Media) {
             return $mediaEntity;
         }
 
