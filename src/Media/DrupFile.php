@@ -149,6 +149,12 @@ class DrupFile {
             '#attributes' => []
         ];
 
+        $image = \Drupal::service('image.factory')->get($uri);
+        if ($image->isValid()) {
+            $rendererOptions['#width'] = $image->getWidth();
+            $rendererOptions['#height'] = $image->getHeight();
+        }
+
         // Render as image style
         if (!empty($style)) {
             if ($imageStyle = self::getImageStyleEntity($style, true)) {
