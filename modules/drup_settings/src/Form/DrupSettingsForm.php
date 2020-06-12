@@ -20,7 +20,7 @@ class DrupSettingsForm extends ConfigFormBase {
     protected $drupSettings;
 
     /**
-     * @var string 
+     * @var string
      */
     protected $formContainer = 'container';
 
@@ -199,7 +199,7 @@ class DrupSettingsForm extends ConfigFormBase {
                 }
             } else {
                 if (isset($this->formItemsData[$key])) {
-                    $this->drupSettings->set($key, $value, $this->formItemsData[$key]->context);
+                    $this->drupSettings->setValue($key, $value, $this->formItemsData[$key]->context);
 
                     // Files
                     if (!empty($value) && in_array($this->formItemsData[$key]->type, ['managed_file'])) {
