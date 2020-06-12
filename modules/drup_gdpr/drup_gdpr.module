@@ -1,0 +1,16 @@
+<?php
+
+use Drupal\drup_gdpr\Controller\WebformSubmissionsDeletionController;
+
+/**
+ * Implements hook_cron().
+ */
+function drup_gdpr_cron() {
+    try {
+        $webformSubmissionsDeletionController = new WebformSubmissionsDeletionController();
+        $webformSubmissionsDeletionController->deleteAfter();
+
+    } catch (\Exception $e) {
+        \Drupal::logger('drup_gdpr')->error($e->getMessage());
+    }
+}

@@ -1,0 +1,8 @@
+name: 'Drup GDPR'
+type: module
+description: 'Aide à mettre Drupal 8 en conformité avec la RGPD'
+core: 8.x
+package: 'Drup'
+php: 7.0
+dependencies:
+  - 'webform:webform'
