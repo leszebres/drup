@@ -4,6 +4,7 @@ namespace Drupal\drup;
 
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Url;
+use Drupal\drup\Entity\DrupField;
 use Drupal\drup\Entity\Node;
 use Drupal\drup\Helper\DrupRequest;
 use Drupal\drup\Helper\DrupString;
@@ -233,28 +234,29 @@ abstract class DrupSEO {
                 } elseif ($name === 'logo:type' && $logo) {
                     $replacements[$original] = $logo->mimetype;
 
-                } elseif ($name === 'thumbnail:url') {
-                    $mediaField = false;
-                    if ($thumbnail = $drupField->get('thumbnail')) {
-                        $mediaField = $thumbnail;
-                    } elseif ($banner = $drupField->get('banner')) {
-                        $mediaField = $banner;
-                    }
+                }
 
-                    if ($mediaField && ($media = new DrupMediaImage($mediaField))) {
-                        $replacements[$original] = current($media->getMediasUrl(self::$imageStyle));
-                    }
+                if ($drupField !== false) {
+                    if ($name === 'thumbnail:url') {
+                        if ($thumbnailUrl = self::getNodeThumbnailUrl($drupField)) {
+                            $replacements[$original] = $thumbnailUrl;
+                        }
 
-                } elseif ($name === 'thumbnail:type') {
-                    $replacements[$original] = 'image/jpg';
+                    } elseif ($name === 'thumbnail:type') {
+                        if ($thumbnailUrl = self::getNodeThumbnailUrl($drupField)) {
+                            $extension = pathinfo($thumbnailUrl, PATHINFO_EXTENSION);
+                            $extension = current(explode('?', $extension));
+                            $replacements[$original] = 'image/' . $extension;
+                        }
 
-                } elseif ($name === 'thumbnail:width' || $name === 'thumbnail:height') {
-                    $imageStyle = ImageStyle::load(self::$imageStyle);
+                    } elseif ($name === 'thumbnail:width' || $name === 'thumbnail:height') {
+                        $imageStyle = ImageStyle::load(self::$imageStyle);
 
-                    if ($imageStyle instanceof ImageStyle) {
-                        $imageStyleEffect = current($imageStyle->getEffects()->getConfiguration());
+                        if ($imageStyle instanceof ImageStyle) {
+                            $imageStyleEffect = current($imageStyle->getEffects()->getConfiguration());
 
-                        $replacements[$original] = $imageStyleEffect['data'][str_replace('thumbnail:', '', $name)];
+                            $replacements[$original] = $imageStyleEffect['data'][str_replace('thumbnail:', '', $name)];
+                        }
                     }
                 }
 
@@ -328,6 +330,28 @@ abstract class DrupSEO {
     }
 
     /**
+     * @param \Drupal\drup\Entity\DrupField $drupField
+     *
+     * @return mixed|null
+     */
+    protected static function getNodeThumbnailUrl(DrupField $drupField) {
+        $drupMedia = null;
+
+        if ($thumbnail = $drupField->getDrupMedia('thumbnail', 'image')) {
+            $drupMedia = $thumbnail;
+        } elseif ($banner = $drupField->getDrupMedia('banner', 'image')) {
+            $drupMedia = $banner;
+        }
+
+        if ($drupMedia) {
+            /** @var DrupMediaImage $drupMedia */
+            return current($drupMedia->getMediasUrl(self::$imageStyle));
+        }
+
+        return null;
+    }
+
+    /**
      * Tokens alter
      *
      * @param $replacements
@@ -364,7 +388,7 @@ abstract class DrupSEO {
 
                     } elseif (\strpos($attachment[1], 'description') !== false) {
                         // Page number
-                        if ($page = pager_find_page()) {
+                        if ($page = \Drupal::service('pager.parameters')->findPage()) {
                             $attachments['#attached']['html_head'][$index][0]['#attributes']['content'] .= ' - ' . t('Page') . ' ' . $page;
                         }
 
@@ -391,7 +415,7 @@ abstract class DrupSEO {
             $drupSettings = \Drupal::service('drup_settings');
 
             // Page number
-            if ($page = pager_find_page()) {
+            if ($page = \Drupal::service('pager.parameters')->findPage()) {
                 $string .= ' - ' . t('Page') . ' ' . $page;
             }
 
@@ -436,6 +460,8 @@ abstract class DrupSEO {
                 }
             }
         }
+
+        $variables['pager_views_title'] = DrupRequest::getTitle();
     }
 
     /**
