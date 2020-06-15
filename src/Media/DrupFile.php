@@ -385,4 +385,18 @@ class DrupFile {
     public function getImage(): \Drupal\Core\Image\Image {
         return $this->image;
     }
+
+    /**
+     * @return string
+     */
+    public function getUri() {
+        return $this->uri;
+    }
+
+    /**
+     * @return \Drupal\file\Entity\File
+     */
+    public function getEntity() {
+        return $this->entity;
+    }
 }
