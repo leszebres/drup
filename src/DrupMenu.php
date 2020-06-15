@@ -199,7 +199,7 @@ class DrupMenu {
 
         $tree = $menuTreeService->transform($menuTree, $manipulators);
         $menuItems = $menuTreeService->build($tree);
-        $menuItems['#cache']['max-age'] = 0;
+        //$menuItems['#cache']['max-age'] = 0;
 
         $navItems = [];
         if (isset($menuItems['#items']) && !empty($menuItems['#items'])) {
@@ -278,7 +278,7 @@ class DrupMenu {
 
             $tree = $menuTreeService->transform($menuTree, $manipulators);
             $menuItems = $menuTreeService->build($tree);
-            $menuItems['#cache']['max-age'] = 0;
+            //$menuItems['#cache']['max-age'] = 0;
 
             if (!empty($menuItems['#items'])) {
                 foreach ($menuItems['#items'] as $index => $item) {
@@ -340,7 +340,7 @@ class DrupMenu {
 
         $tree = $menuTreeService->transform($menuTree, $manipulators);
         $menuItems = $menuTreeService->build($tree);
-        $menuItems['#cache']['max-age'] = 0;
+        //$menuItems['#cache']['max-age'] = 0;
 
         if (!empty($menuItems['#items'])) {
             foreach ($menuItems['#items'] as $index => $item) {
