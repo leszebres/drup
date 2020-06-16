@@ -37,6 +37,13 @@ abstract class DrupSEO {
     public static $imageStyle = 'seo';
 
     /**
+     * Nombre de caractères pour la méta description
+     *
+     * @var int
+     */
+    public static $descriptionLength = 155;
+
+    /**
      * Déclaration des tokens pour le SEO
      *
      * @param $info
@@ -208,7 +215,7 @@ abstract class DrupSEO {
                             }
 
                             if (!empty($description)) {
-                                $replacements[$original] = DrupString::truncate($description);
+                                $replacements[$original] = DrupString::truncate($description, static::$descriptionLength);
                             }
 
                         } else {
